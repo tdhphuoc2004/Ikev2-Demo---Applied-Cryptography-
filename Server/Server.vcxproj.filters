@@ -18,24 +18,33 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Server.cpp">
+    <ClCompile Include="MessageHandling.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="Cryptography_Utils.cpp">
+    <ClCompile Include="ResponderCrypto.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network_Utils.cpp">
+    <ClCompile Include="ResponderNetwork.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResponderAuth.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Cryptography_Utils.h">
+    <ClInclude Include="ResponderAuth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Server.h">
+    <ClInclude Include="Responder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network_Utils.h">
+    <ClInclude Include="ResponderNetwork.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResponderCrypto.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageHandling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

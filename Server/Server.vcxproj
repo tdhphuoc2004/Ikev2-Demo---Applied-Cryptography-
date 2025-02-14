@@ -24,6 +24,7 @@
     <ProjectGuid>{696b7650-f2ec-46d4-8b6f-b105bba70403}</ProjectGuid>
     <RootNamespace>Server</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Responder</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -135,15 +136,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Cryptography_Utils.cpp" />
+    <ClCompile Include="ResponderAuth.cpp" />
+    <ClCompile Include="ResponderCrypto.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Network_Utils.cpp" />
-    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="ResponderNetwork.cpp" />
+    <ClCompile Include="MessageHandling.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Cryptography_Utils.h" />
-    <ClInclude Include="Network_Utils.h" />
-    <ClInclude Include="Server.h" />
+    <ClInclude Include="MessageHandling.h" />
+    <ClInclude Include="ResponderAuth.h" />
+    <ClInclude Include="ResponderNetwork.h" />
+    <ClInclude Include="ResponderCrypto.h" />
+    <ClInclude Include="Responder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

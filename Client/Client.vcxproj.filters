@@ -18,24 +18,30 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Client.cpp">
+    <ClCompile Include="InitiatorNetwork.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="Cryptography_Utils.cpp">
+    <ClCompile Include="InitiatorAuth.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network_Utils.cpp">
+    <ClCompile Include="InitiatorCrypto.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Client.h">
+    <ClInclude Include="Initiator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Cryptography_Utils.h">
+    <ClInclude Include="InitiatorNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network_Utils.h">
+    <ClInclude Include="InitiatorAuth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InitiatorCrypto.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageHandling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
