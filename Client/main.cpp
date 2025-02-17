@@ -4,12 +4,14 @@ int main()
 {
     InitiatorNetwork network("127.0.0.1", 5001);
     network.connectToResponder();
-    network.sendPacket("Hello IKEv2 Responder");
-    std::string response = network.receivePacket();
+    network.sendTextMessage("Hello IKEv2 Responder");
+    std::string response = network.receiveTextMessage();
 
     if (response != "ERR")
     {
         Initiator initiator(network); 
+        initiator.buildIKE_SA_INIT(); 
+        
     }
     else
     {

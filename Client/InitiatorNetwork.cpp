@@ -38,21 +38,56 @@ void InitiatorNetwork::connectToResponder() {
 }
 
 // Send a packet
-void InitiatorNetwork::sendPacket(const std::string& msg) {
-    send(sock, msg.c_str(), msg.size(), 0);
-    std::cout << "Sent: " << msg << std::endl;
+void InitiatorNetwork::sendPacket(const std::vector<uint8_t>& data) {
+    send(sock, reinterpret_cast<const char*>(data.data()), data.size(), 0);
+
+    // Optional: Print hex representation of sent data
+    std::cout << "Sent packet (" << data.size() << " bytes): ";
+    for (const auto& byte : data) {
+        printf("%02x ", byte);
+    }
+    std::cout << std::endl;
 }
 
 // Receive a packet
-std::string InitiatorNetwork::receivePacket() {
+std::vector<uint8_t> InitiatorNetwork::receivePacket() {
+    std::vector<uint8_t> buffer(MAX_PACKET_SIZE);
+
+    int receivedBytes = recv(sock, reinterpret_cast<char*>(buffer.data()), buffer.size(), 0);
+    if (receivedBytes <= 0) {
+        std::cerr << "Error: Failed to receive packet! Error code: " << WSAGetLastError() << std::endl;
+        return std::vector<uint8_t>();
+    }
+
+    // Resize buffer to actual received bytes
+    buffer.resize(receivedBytes);
+
+    // Debug output: print received bytes in hex
+    std::cout << "Received " << receivedBytes << " bytes: ";
+    for (const auto& byte : buffer) {
+        printf("%02x ", byte);
+    }
+    std::cout << std::endl;
+
+    return buffer;
+}
+
+
+void InitiatorNetwork::sendTextMessage(const std::string& msg) 
+{
+    send(sock, msg.c_str(), msg.length(), 0);
+    std::cout << "Sent test message: " << msg << std::endl;
+}
+
+std::string InitiatorNetwork::receiveTextMessage() {
     char buffer[1024] = { 0 };
     int receivedBytes = recv(sock, buffer, sizeof(buffer), 0);
     if (receivedBytes <= 0) {
-        std::cerr << "Error: Failed to receive packet!" << std::endl;
+        std::cerr << "Error: Failed to receive test message!" << std::endl;
         return "ERR";
     }
 
     std::string response(buffer, receivedBytes);
-    std::cout << "Received: " << response << std::endl;
-    return response;
+    std::cout << "Received test message: " << response << std::endl;
+    return response; 
 }

@@ -3,8 +3,9 @@
 #include <ws2tcpip.h>
 #include <string>
 #include <iostream>
-
+#include <vector>
 #pragma comment(lib, "Ws2_32.lib")
+#define MAX_PACKET_SIZE 4096
 
 class ResponderNetwork {
 private:
@@ -21,6 +22,11 @@ public:
     ~ResponderNetwork();
 
     void startListening();
-    std::string receivePacket();
-    void sendPacket(const std::string& msg);
+
+    std::string receiveTextMessage();
+    void sendTextMessage(const std::string& msg);
+
+    void sendPacket(const std::vector<uint8_t>& data); 
+    std::vector<uint8_t> receivePacket(); 
+
 };

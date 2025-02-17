@@ -8,10 +8,16 @@ private:
     // IKEv2 security parameters
     std::string ikeSPI;
     std::string peerSPI;
-    std::string dhGroup;
+
+
+    const std::string encryptionAlgorithm = "AES-CBC-128";
+    const std::string integrityAlgorithm = "HMAC-SHA-256-128";
+    const std::string prfAlgorithm = "HMAC-SHA-256";
+
+    uint32_t messageID;
+
+    std::string dhKey = "";
     std::string sharedSecret;
-    std::string encryptionAlgorithm;
-    std::string integrityAlgorithm;
 
     // Authentication
     std::string identity;
@@ -24,6 +30,11 @@ private:
     std::string state;
 
     ResponderNetwork& network;  // Reference to networking class
+
+public:
+    std::string getdhKey();
+    std::string getNonce();
+    std::string getsharedSecret();
 
 public:
     // Constructor

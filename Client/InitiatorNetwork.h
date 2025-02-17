@@ -3,7 +3,8 @@
 #include <ws2tcpip.h>
 #include <string>
 #include <iostream>
-
+#include <vector>
+#define MAX_PACKET_SIZE 4096
 #pragma comment(lib, "Ws2_32.lib")
 
 class InitiatorNetwork {
@@ -20,6 +21,9 @@ public:
     ~InitiatorNetwork();
 
     void connectToResponder();
-    void sendPacket(const std::string& msg);
-    std::string receivePacket();
+    void sendPacket(const std::vector<uint8_t>& data);
+    std::vector<uint8_t> receivePacket();
+
+    void sendTextMessage(const std::string& msg); 
+    std::string receiveTextMessage(); 
 };

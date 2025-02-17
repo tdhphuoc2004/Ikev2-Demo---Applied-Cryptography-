@@ -136,12 +136,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IKEHeader.cpp" />
+    <ClCompile Include="IKEmessage.cpp" />
+    <ClCompile Include="IKEPayload.cpp" />
+    <ClCompile Include="Initiator.cpp" />
     <ClCompile Include="InitiatorAuth.cpp" />
     <ClCompile Include="InitiatorCrypto.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="InitiatorNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IKEHeader.h" />
+    <ClInclude Include="IKEmessage.h" />
+    <ClInclude Include="IKEPayload.h" />
     <ClInclude Include="Initiator.h" />
     <ClInclude Include="InitiatorAuth.h" />
     <ClInclude Include="InitiatorCrypto.h" />

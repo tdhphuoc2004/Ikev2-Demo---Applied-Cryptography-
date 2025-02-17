@@ -7,13 +7,14 @@ int main()
 {
     ResponderNetwork network("127.0.0.1", 5001);
     network.startListening();
-    std::string request = network.receivePacket();
-    network.sendPacket("Hello IKEv2 Initiator");
+    std::string request = network.receiveTextMessage();
+    network.sendTextMessage("Hello IKEv2 Initiator");
 
     if (request != "ERR")
     {
         Responder responder(network);
-        system("Pause");
+        responder.processIKE_SA_INIT(); 
+        system("Pause"); 
     }
     else
     {
