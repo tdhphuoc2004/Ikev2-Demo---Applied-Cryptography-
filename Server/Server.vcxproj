@@ -115,8 +115,8 @@
       <AdditionalDependencies>cryptlib.lib;libcrypto.lib;libssl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y /d "$(SolutionDir)Openssl3.4\bin\libcrypto-3-x64.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)Openssl3.4\bin\libssl-3-x64.dll" "$(OutDir)"
+      <Command>xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libcrypto-3-x64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libssl-3-x64.dll" "$(OutDir)"
 </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -140,8 +140,8 @@ xcopy /y /d "$(SolutionDir)Openssl3.4\bin\libssl-3-x64.dll" "$(OutDir)"
       <AdditionalDependencies>cryptlib.lib;libcrypto.lib;libssl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y /d "$(SolutionDir)Openssl3.4\bin\libcrypto-3-x64.dll" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)Openssl3.4\bin\libssl-3-x64.dll" "$(OutDir)"
+      <Command>xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libcrypto-3-x64.dll" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libssl-3-x64.dll" "$(OutDir)"
 </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
