@@ -33,13 +33,13 @@
     <ClCompile Include="Responder.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="IKEHeader.cpp">
+    <ClCompile Include="ResponderIKEHeader.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="IKEmessage.cpp">
+    <ClCompile Include="ResponderIKEMessage.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="IKEPayload.cpp">
+    <ClCompile Include="ResponderIKEPayload.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,13 +59,13 @@
     <ClInclude Include="MessageHandling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IKEHeader.h">
+    <ClInclude Include="ResponderIKEHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IKEPayload.h">
+    <ClInclude Include="ResponderIKEPayload.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IKEmessage.h">
+    <ClInclude Include="ResponderIKEMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

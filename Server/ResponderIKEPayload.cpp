@@ -1,4 +1,6 @@
-#include "IKEPayload.h"
+#include "ResponderIKEHeader.h"
+#include "ResponderIKEMessage.h"
+
 #include <cryptlib.h>
 #include <hex.h>
 #include <filters.h>

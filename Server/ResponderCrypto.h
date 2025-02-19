@@ -5,8 +5,8 @@
 
 class ResponderCrypto {
 public:
-    // Generate Diffie-Hellman Key Pair (KEi)
-    static void generateDHKey(std::string& publicKey);
+    // Generate Diffie-Hellman Key Pair (KEi) in Elliptic Curve 
+    static void generateDHKey(std::string& privateKeyHex, std::string& publicKeyHex);
 
     // Generate Nonce (Ni)
     static void generateNonce(std::string& nonce);

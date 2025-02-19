@@ -1,10 +1,15 @@
-#include "IKEmessage.h"
-#include "IKEPayload.h"
-#include "IKEHeader.h"
+#include "InitiatorIKEmessage.h"
 
-#include <iostream>
-#include <cstring> 
+std::vector<uint8_t> IKEMessage::toByteArray() {
+    std::vector<uint8_t> binaryMessage = header.toByteArray();
 
+    for (auto payload : payloads) {
+        std::vector<uint8_t> payloadData = payload.toByteArray();
+        binaryMessage.insert(binaryMessage.end(), payloadData.begin(), payloadData.end());
+    }
+
+    return binaryMessage;
+}
 
 bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
 {
@@ -44,7 +49,7 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
     uint8_t nextPayloadType = header.nextPayload;
     while (nextPayloadType != PAYLOAD_NONE && offset < rawData.size())
     {
-      //  std::cout << "Parsing Payload Type: " << static_cast<int>(nextPayloadType) << std::endl;
+        //  std::cout << "Parsing Payload Type: " << static_cast<int>(nextPayloadType) << std::endl;
 
         if (offset + 4 > rawData.size()) {
             std::cerr << "Error: Payload header truncated at offset " << offset << std::endl;
@@ -55,7 +60,7 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
         uint8_t savedNextPayload = data[offset];
         payload.nextPayload = data[offset++];
 
-   //     std::cout << "Next payload in chain: " << static_cast<int>(savedNextPayload) << std::endl;
+        //     std::cout << "Next payload in chain: " << static_cast<int>(savedNextPayload) << std::endl;
 
         payload.critical = data[offset++];
         std::memcpy(&payload.payloadLength, data + offset, sizeof(uint16_t));
@@ -75,7 +80,7 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
             return false;
         }
 
-     //   std::cout << "Reading " << dataLength << " bytes of payload data" << std::endl;
+        //   std::cout << "Reading " << dataLength << " bytes of payload data" << std::endl;
 
         std::vector<uint8_t> payloadData(data + offset, data + offset + dataLength);
         offset += dataLength;

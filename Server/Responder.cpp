@@ -1,34 +1,92 @@
 #include "Responder.h"
-#include "IKEmessage.h"
-#include "IKEPayload.h"
-#include "IKEHeader.h"
+#include "ResponderIKEHeader.h"
+#include "ResponderIKEMessage.h"
+#include "ResponderIKEPayload.h"
 #include "ResponderCrypto.h"
-std::string Responder::getdhKey()
+
+std::string Responder::getDHprivatekey()
 {
-	return dhKey;
+	return _privatekey;
+}
+
+std::string Responder::getDHpublickey()
+{
+	return _publickey;
 }
 
 std::string Responder::getNonce()
 {
-	return nonce;
+	return _nonce;
 }
 
 std::string Responder::getsharedSecret()
 {
-	return sharedSecret;
+	return _sharedSecret;
 }
 
-void Responder::processIKE_SA_INIT()
+void Responder::processIKE_SA_INIT(IKEMessage &request)
 {
-	std::vector<uint8_t> binaryData = network.receivePacket(); 
+	std::vector<uint8_t> binaryData = _network.receivePacket(); 
 	// Parsing packet first
-	IKEMessage message;
-	message.parseIKEmessage(binaryData);
+    request.parseIKEmessage(binaryData);
+
 	// Get Key and Nonce 
-	std::string InitiatorDHKey = binaryToHex(message.payloads[0].data); 
-	ResponderCrypto::generateDHKey(dhKey);
-	std::cout << dhKey << std::endl;
-	ResponderCrypto::calculateSharedSecret(InitiatorDHKey, dhKey, sharedSecret);
-	std::cout << "shared Secret:" << sharedSecret << std::endl; 
+	std::string InitiatorDHKey = binaryToHex(request.payloads[0].data);
+	ResponderCrypto::generateDHKey(_privatekey, _publickey);
+	std::cout << "Responder private key:" << _privatekey << std::endl;
+	std::cout << "Responder public key:" << _publickey << std::endl;
+
+	ResponderCrypto::calculateSharedSecret(InitiatorDHKey, _privatekey, _sharedSecret);
+	std::cout << "shared Secret:" << _sharedSecret << std::endl; 
+
+	_nonce = binaryToHex(request.payloads[1].data);
+    std::cout << "Nonce from initator:" << _nonce <<  std::endl; 
+}
+
+void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
+{
+    IKEMessage response;
+
+    // Set Up IKE Header
+    _peerSPI = request.header.initiatorSPI; // Copy from initiator request
+    response.header.initiatorSPI = _peerSPI;
+    _ikeSPI = generateSPI();
+    response.header.responderSPI = _ikeSPI;
+    response.header.nextPayload = PAYLOAD_KE;  
+    response.header.minorVersion = 0;
+    response.header.exchangeType = IKE_SA_INIT;
+    response.header.messageID = request.header.messageID;  // Message ID should match Initiator's
+
+    //// Build SA Payload (Match Initiator’s cryptographic suite)
+    //IKEPayload saPayload = buildSAPayload();
+    //response.payloads.push_back(saPayload);
+
+    // Build KE Payload 
+    IKEPayload kePayload = buildKEPayload(_publickey);
+
+    // Build Nonce payload 
+    std::string nonce = ""; 
+    ResponderCrypto::generateNonce(nonce); 
+    std::cout << "Nonce will sent to initator:" << nonce << std::endl;
+    IKEPayload noncePayload = buildNoncePayload(nonce); 
+
+    response.payloads.push_back(kePayload);
+    response.payloads.push_back(noncePayload);
+
+
+    // Calculate total IKE message length
+    uint32_t totalLength = IKE_HEADER_SIZE;
+    for (auto payload : response.payloads)
+    {
+        totalLength += payload.payloadLength;
+    }
+
+    response.header.length = totalLength;
+    std::cout << "Message length:" << totalLength << std::endl;
+
+
+    // Send it 
+    std::vector<uint8_t> binarymessage = response.toByteArray();
+    _network.sendPacket(binarymessage);
 
 }

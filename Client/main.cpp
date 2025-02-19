@@ -1,5 +1,7 @@
 #include "InitiatorNetwork.h"
 #include "Initiator.h"
+#include "InitiatorIKEmessage.h"
+
 int main() 
 {
     InitiatorNetwork network("127.0.0.1", 5001);
@@ -9,9 +11,10 @@ int main()
 
     if (response != "ERR")
     {
+        IKEMessage message; 
         Initiator initiator(network); 
         initiator.buildIKE_SA_INIT(); 
-        
+        initiator.processIKE_SA_INIT_Response(message); 
     }
     else
     {

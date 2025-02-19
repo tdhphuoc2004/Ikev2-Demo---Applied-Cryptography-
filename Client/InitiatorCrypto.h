@@ -6,17 +6,17 @@
 class InitiatorCrypto {
 public:
     // Generate Diffie-Hellman Key Pair (KEi)
-    static void generateDHKey(std::string& publicKey);
+    static void generateDHKey(std::string& privateKeyHex, std::string& publicKeyHex); 
 
     // Generate Nonce (Ni)
     static void generateNonce(std::string& nonce);
 
     // Computing shared secret DH key 
-    void calculateSharedSecret(
-        const std::string& initiatorPublicKeyHex,
-        const CryptoPP::SecByteBlock& responderPrivateKey,
+    static void calculateSharedSecret(
+        const std::string& responderPublicKeyHex,
+        const std::string& initiatorPrivateKeyHex,
         std::string& sharedSecretHex
-    ); 
+    );
 
 
     // Encrypt message (AES-GCM)

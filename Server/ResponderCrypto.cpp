@@ -8,24 +8,30 @@
 #include <oids.h>
 
 
-void ResponderCrypto::generateDHKey(std::string& publicKey)
+void ResponderCrypto::generateDHKey(std::string& privateKeyHex, std::string& publicKeyHex)
 {
     CryptoPP::AutoSeededRandomPool rng;
     CryptoPP::DL_GroupParameters_EC<CryptoPP::ECP> dhParams;
-    dhParams.Initialize(CryptoPP::ASN1::secp256r1()); //  Group 19
+    dhParams.Initialize(CryptoPP::ASN1::secp256r1());  // NIST P-256, SECP256R1
 
     CryptoPP::ECDH<CryptoPP::ECP>::Domain dhDomain(dhParams);
+
+    // Generate keys 
     CryptoPP::SecByteBlock privateKey(dhDomain.PrivateKeyLength());
     CryptoPP::SecByteBlock pubKey(dhDomain.PublicKeyLength());
-
     dhDomain.GenerateKeyPair(rng, privateKey, pubKey);
 
-    // Convert public key to hex
-    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(publicKey));
-    encoder.Put(pubKey, pubKey.size());
-    encoder.MessageEnd();
+    // Convert private key to hex
+    privateKeyHex.clear();
+    CryptoPP::HexEncoder privEncoder(new CryptoPP::StringSink(privateKeyHex));
+    privEncoder.Put(privateKey, privateKey.size());
+    privEncoder.MessageEnd();
 
-    // PublicKey of group 19 will have 65 bytes 
+    // Convert public key to hex (includes '04' prefix automatically)
+    publicKeyHex.clear();
+    CryptoPP::HexEncoder pubEncoder(new CryptoPP::StringSink(publicKeyHex));
+    pubEncoder.Put(pubKey, pubKey.size());
+    pubEncoder.MessageEnd();
 }
 
 void ResponderCrypto::generateNonce(std::string& nonce) {

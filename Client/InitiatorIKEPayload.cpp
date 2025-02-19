@@ -1,4 +1,4 @@
-#include "IKEPayload.h"
+#include "InitiatorIKEPayload.h"
 #include <cryptlib.h>
 #include <hex.h>
 #include <filters.h>

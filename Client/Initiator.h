@@ -2,44 +2,48 @@
 #include <string>
 #include <iostream>
 #include "InitiatorNetwork.h"
+#include "InitiatorIKEmessage.h"
+
 class Initiator {
 private:
-    std::string ikeSPI;
-    std::string peerSPI;
+    uint64_t _ikeSPI;
+    uint64_t _peerSPI;
 
-    const std::string encryptionAlgorithm = "AES-CBC-128";
-    const std::string integrityAlgorithm = "HMAC-SHA-256-128";
-    const std::string prfAlgorithm = "HMAC-SHA-256";
+    const std::string _encryptionAlgorithm = "AES-CBC-128";
+    const std::string _integrityAlgorithm = "HMAC-SHA-256-128";
+    const std::string _prfAlgorithm = "HMAC-SHA-256";
 
-    std::string identity;
-    std::string nonce = "";
+    std::string _identity;
+    std::string _nonce = "";
 
-    std::string dhKey = "";
-    std::string sharedSecret;
+    std::string _privatekey = "";
+    std::string _publickey = ""; 
+    std::string _sharedSecret = "";
 
-    uint32_t messageID; 
+    uint32_t _messageID; 
 
-    std::string trafficSelectors;
-    std::string state;
+    std::string _trafficSelectors;
+    std::string _state;
 
-    InitiatorNetwork& network;
+    InitiatorNetwork& _network;
 
 public:
-    std::string getdhKey(); 
+    std::string getDHprivatekey();
+    std::string getDHpublickey(); 
     std::string getNonce(); 
     std::string getsharedSecret(); 
 
 public:
     // Constructor
-    Initiator(InitiatorNetwork& net) : network(net) 
+    Initiator(InitiatorNetwork& net) : _network(net) 
     {
         std::cout << "Initiator created using GCM-128 Security Suite." << std::endl;
-        messageID = 0; 
+        _messageID = 0; 
     }
 
 
     void buildIKE_SA_INIT();
-    //void processIKE_SA_INIT_Response();
+    void processIKE_SA_INIT_Response(IKEMessage &response);
 
     //void buildIKE_AUTH();
     //void processIKE_AUTH_Response();

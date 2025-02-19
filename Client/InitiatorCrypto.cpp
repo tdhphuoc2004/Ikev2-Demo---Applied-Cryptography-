@@ -8,24 +8,30 @@
 #include <oids.h>
 
 
-void InitiatorCrypto::generateDHKey(std::string& publicKey) 
+void InitiatorCrypto::generateDHKey(std::string& privateKeyHex, std::string& publicKeyHex)
 {
     CryptoPP::AutoSeededRandomPool rng;
     CryptoPP::DL_GroupParameters_EC<CryptoPP::ECP> dhParams;
-    dhParams.Initialize(CryptoPP::ASN1::secp256r1()); //  Group 19
+    dhParams.Initialize(CryptoPP::ASN1::secp256r1());  // NIST P-256, SECP256R1
 
     CryptoPP::ECDH<CryptoPP::ECP>::Domain dhDomain(dhParams);
+
+    // Generate keys 
     CryptoPP::SecByteBlock privateKey(dhDomain.PrivateKeyLength());
     CryptoPP::SecByteBlock pubKey(dhDomain.PublicKeyLength());
-
     dhDomain.GenerateKeyPair(rng, privateKey, pubKey);
 
-    // Convert public key to hex
-    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(publicKey));
-    encoder.Put(pubKey, pubKey.size());
-    encoder.MessageEnd();
+    // Convert private key to hex
+    privateKeyHex.clear();
+    CryptoPP::HexEncoder privEncoder(new CryptoPP::StringSink(privateKeyHex));
+    privEncoder.Put(privateKey, privateKey.size());
+    privEncoder.MessageEnd();
 
-    // PublicKey of group 19 will have 65 bytes 
+    // Convert public key to hex 
+    publicKeyHex.clear();
+    CryptoPP::HexEncoder pubEncoder(new CryptoPP::StringSink(publicKeyHex));
+    pubEncoder.Put(pubKey, pubKey.size());
+    pubEncoder.MessageEnd();
 }
 
 void InitiatorCrypto::generateNonce(std::string& nonce) {
@@ -39,41 +45,61 @@ void InitiatorCrypto::generateNonce(std::string& nonce) {
     encoder.MessageEnd();
 }
 
-void InitiatorCrypto::calculateSharedSecret(
-    const std::string& initiatorPublicKeyHex,
-    const CryptoPP::SecByteBlock& responderPrivateKey,
-    std::string& sharedSecretHex
-)
+// Convert Hex-Encoded String to SecByteBlock
+CryptoPP::SecByteBlock hexToSecByteBlock(const std::string& hexStr)
 {
-    if (initiatorPublicKeyHex.empty() || responderPrivateKey.size() == 0) {
-        throw std::invalid_argument("Empty public/private key input");
-    }
+    CryptoPP::SecByteBlock byteBlock(hexStr.size() / 2); // Each byte = 2 hex chars
 
-    CryptoPP::DL_GroupParameters_EC<CryptoPP::ECP> dhParams;
-    dhParams.Initialize(CryptoPP::ASN1::secp256r1());
-
-    CryptoPP::ECDH<CryptoPP::ECP>::Domain dhDomain(dhParams);
-
-    if (responderPrivateKey.size() != dhDomain.PrivateKeyLength()) {
-        throw std::invalid_argument("Invalid responder private key size");
-    }
-
-    CryptoPP::SecByteBlock initiatorPublicKey(dhDomain.PublicKeyLength());
-    CryptoPP::StringSource decoder(initiatorPublicKeyHex, true,
+    CryptoPP::StringSource(hexStr, true,
         new CryptoPP::HexDecoder(
-            new CryptoPP::ArraySink(initiatorPublicKey, initiatorPublicKey.size())
+            new CryptoPP::ArraySink(byteBlock, byteBlock.size())
         )
     );
 
+    return byteBlock;
+}
+
+// Convert SecByteBlock to Hex String
+std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock) {
+    std::string hexStr;
+
+    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(hexStr));
+    encoder.Put(byteBlock, byteBlock.size());
+    encoder.MessageEnd();
+
+    return hexStr;
+}
+
+void InitiatorCrypto::calculateSharedSecret(
+    const std::string& responderPublicKeyHex,
+    const std::string& initiatorPrivateKeyHex,
+    std::string& sharedSecretHex
+)
+{
+    if (responderPublicKeyHex.empty() || initiatorPrivateKeyHex.empty()) {
+        throw std::invalid_argument("Empty public/private key input");
+    }
+
+    // Initialize ECDH parameters for secp256r1 (NIST P-256, Group 19)
+    CryptoPP::DL_GroupParameters_EC<CryptoPP::ECP> dhParams;
+    dhParams.Initialize(CryptoPP::ASN1::secp256r1());
+    CryptoPP::ECDH<CryptoPP::ECP>::Domain dhDomain(dhParams);
+
+    // Convert initiator's public key from hex to SecByteBlock
+    CryptoPP::SecByteBlock initiatorPublicKey = hexToSecByteBlock(responderPublicKeyHex);
+
+    // Convert responder's private key from hex to SecByteBlock
+    CryptoPP::SecByteBlock responderPrivateKey = hexToSecByteBlock(initiatorPrivateKeyHex);
+
+
+    // Compute shared secret
     CryptoPP::SecByteBlock sharedSecret(dhDomain.AgreedValueLength());
     if (!dhDomain.Agree(sharedSecret, responderPrivateKey, initiatorPublicKey)) {
         throw std::runtime_error("ECDH key agreement failed");
     }
 
-    sharedSecretHex.clear();
-    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(sharedSecretHex));
-    encoder.Put(sharedSecret, sharedSecret.size());
-    encoder.MessageEnd();
+    // Convert shared secret to hex
+    sharedSecretHex = secByteBlockToHex(sharedSecret);
 }
 
 

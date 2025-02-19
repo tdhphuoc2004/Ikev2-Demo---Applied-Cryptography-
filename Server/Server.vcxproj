@@ -136,9 +136,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="IKEHeader.cpp" />
-    <ClCompile Include="IKEmessage.cpp" />
-    <ClCompile Include="IKEPayload.cpp" />
+    <ClCompile Include="ResponderIKEHeader.cpp" />
+    <ClCompile Include="ResponderIKEMessage.cpp" />
+    <ClCompile Include="ResponderIKEPayload.cpp" />
     <ClCompile Include="Responder.cpp" />
     <ClCompile Include="ResponderAuth.cpp" />
     <ClCompile Include="ResponderCrypto.cpp" />
@@ -147,9 +147,9 @@
     <ClCompile Include="MessageHandling.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IKEHeader.h" />
-    <ClInclude Include="IKEmessage.h" />
-    <ClInclude Include="IKEPayload.h" />
+    <ClInclude Include="ResponderIKEHeader.h" />
+    <ClInclude Include="ResponderIKEMessage.h" />
+    <ClInclude Include="ResponderIKEPayload.h" />
     <ClInclude Include="MessageHandling.h" />
     <ClInclude Include="ResponderAuth.h" />
     <ClInclude Include="ResponderNetwork.h" />

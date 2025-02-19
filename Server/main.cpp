@@ -1,5 +1,8 @@
 #include "ResponderNetwork.h"
 #include "Responder.h"
+#include "ResponderIKEHeader.h"
+#include "ResponderIKEMessage.h"
+#include "ResponderIKEPayload.h"
 
 #include <string>
 #include <iostream>
@@ -13,7 +16,10 @@ int main()
     if (request != "ERR")
     {
         Responder responder(network);
-        responder.processIKE_SA_INIT(); 
+        IKEMessage message; 
+        responder.processIKE_SA_INIT(message);
+        responder.buildIKE_SA_INIT_Response(message);
+
         system("Pause"); 
     }
     else
