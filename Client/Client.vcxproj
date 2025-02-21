@@ -146,6 +146,7 @@ xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libssl-3-x64.dll" "$(OutDir)"
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="InitiatorCertificate.cpp" />
     <ClCompile Include="InitiatorIKEHeader.cpp" />
     <ClCompile Include="InitiatorIKEmessage.cpp" />
     <ClCompile Include="InitiatorIKEPayload.cpp" />
@@ -156,6 +157,7 @@ xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libssl-3-x64.dll" "$(OutDir)"
     <ClCompile Include="InitiatorNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="InitiatorCertificate.h" />
     <ClInclude Include="InitiatorIKEHeader.h" />
     <ClInclude Include="InitiatorIKEmessage.h" />
     <ClInclude Include="InitiatorIKEPayload.h" />

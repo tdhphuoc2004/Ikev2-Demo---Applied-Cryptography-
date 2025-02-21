@@ -6,6 +6,7 @@
 
 class Initiator {
 private:
+   
     uint64_t _ikeSPI;
     uint64_t _peerSPI;
 
@@ -14,11 +15,20 @@ private:
     const std::string _prfAlgorithm = "HMAC-SHA-256";
 
     std::string _identity;
+
+    // Nonce 
     std::string _nonce = "";
 
+    // DH in Elliptic Curve 
     std::string _privatekey = "";
     std::string _publickey = ""; 
     std::string _sharedSecret = "";
+
+    // Certificate 
+    std::vector<uint8_t> _certReqRaw;   
+    int _certEncoding;                  
+    std::string _caIdentifier;         
+
 
     uint32_t _messageID; 
 

@@ -2,12 +2,15 @@
 #include <cstdint>
 #include <vector>
 
-#define IKE_SA_INIT 34
-#define IKE_AUTH 35
-#define CREATE_CHILD_SA 36
-#define INFORMATIONAL 37
+enum class IKEExchangeType : uint8_t 
+{
+    SA_INIT = 34,    // Initial exchange
+    AUTH = 35,    // Authentication
+    CREATE_CHILD_SA = 36,    // Create Child SA
+    INFORMATIONAL = 37     // Informational exchange
+};
 
-#define IKE_HEADER_SIZE 28  // Fixed size of IKE header
+constexpr uint32_t IKE_HEADER_SIZE = 28;  // Fixed size of IKE header in bytes
 
 struct IKEHeader {
     uint64_t initiatorSPI;

@@ -1,9 +1,15 @@
 #include "ResponderIKEHeader.h"
 #include "ResponderIKEMessage.h"
+#include "ResponderCertificate.h"
+#include "ResponderIKEPayload.h"
+
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
 
 #include <cryptlib.h>
 #include <hex.h>
 #include <filters.h>
+
 #include <vector>
 #include <string>
 #include <cstring>
@@ -58,25 +64,14 @@ std::string binaryToHex(const std::vector<uint8_t>& binary)
 }
 
 // Build Key Exchange (KE) Payload
-IKEPayload buildKEPayload(const std::string& publicKeyHex) {
+IKEPayload buildKEPayload(const std::string& publicKeyHex, PayloadType nextType) {
     IKEPayload ke;
-    ke.nextPayload = PAYLOAD_NONCE; // Nonce follows KE
+    ke.nextPayload = static_cast<uint8_t> (nextType); // Nonce follows KE
     // Convert hex public key to binary using Crypto++
     ke.data = hexToBinary(publicKeyHex);
     ke.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + ke.data.size());
     std::cout << "KE payload:" << ke.payloadLength << std::endl;
     return ke;
-}
-
-// Build Nonce (Ni/Nr) Payload
-IKEPayload buildNoncePayload(const std::string& nonceHex) {
-    IKEPayload nonce;
-    nonce.nextPayload = PAYLOAD_NONE;
-    // Convert hex nonce to binary using Crypto++
-    nonce.data = hexToBinary(nonceHex);
-    nonce.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + nonce.data.size());
-    std::cout << "Nonce payload:" << nonce.payloadLength << std::endl;
-    return nonce;
 }
 
 // Parse Key Exchange (KE) Payload
@@ -91,6 +86,18 @@ IKEPayload parseKEPayload(const std::vector<uint8_t>& data) {
     return ke;
 }
 
+
+// Build Nonce (Ni/Nr) Payload
+IKEPayload buildNoncePayload(const std::string& nonceHex, PayloadType nextType) {
+    IKEPayload nonce;
+    nonce.nextPayload = static_cast<uint8_t> (nextType);
+    // Convert hex nonce to binary using Crypto++
+    nonce.data = hexToBinary(nonceHex);
+    nonce.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + nonce.data.size());
+    std::cout << "Nonce payload:" << nonce.payloadLength << std::endl;
+    return nonce;
+}
+
 // Parse Nonce (Ni/Nr) Payload
 IKEPayload parseNoncePayload(const std::vector<uint8_t>& data) {
     IKEPayload nonce;
@@ -101,4 +108,51 @@ IKEPayload parseNoncePayload(const std::vector<uint8_t>& data) {
 
     nonce.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + nonce.data.size());
     return nonce;
+}
+
+// Build CAREQ payload 
+IKEPayload buildCAREQPayload(X509* certificate, PayloadType nextType)
+{
+    IKEPayload careq;
+    careq.nextPayload = static_cast<uint8_t> (nextType);
+    careq.payloadLength = 0;
+
+    // Check if certificate is valid
+    if (!certificate) {
+        fprintf(stderr, "Error: Invalid certificate\n");
+        return careq;
+    }
+
+    // Get the certificate's subject name
+    X509_NAME* subject = X509_get_subject_name(certificate);
+    if (!subject) {
+        fprintf(stderr, "Failed to get certificate subject\n");
+        return careq;
+    }
+
+    // Convert subject to DER format
+    unsigned char* der_data = nullptr;
+    int der_length = i2d_X509_NAME(subject, &der_data);
+    if (der_length < 0 || !der_data) {
+        fprintf(stderr, "Failed to convert subject to DER format\n");
+        return careq;
+    }
+
+    // Create CAREQ data field 
+    // Certificate Encoding Type (X.509 Certificate - Signature)
+    std::vector<uint8_t> payload;
+    payload.reserve(1 + der_length);
+    payload.push_back(X509Cert_Signature); 
+
+    // Add the DER-encoded subject name
+    payload.insert(payload.end(), der_data, der_data + der_length);
+
+    // Free the DER data
+    OPENSSL_free(der_data);
+
+    // Set the payload data
+    careq.data = std::move(payload);
+    careq.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + careq.data.size());
+
+    return careq;
 }

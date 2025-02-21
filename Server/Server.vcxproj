@@ -146,6 +146,7 @@ xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libssl-3-x64.dll" "$(OutDir)"
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ResponderCertificate.cpp" />
     <ClCompile Include="ResponderIKEHeader.cpp" />
     <ClCompile Include="ResponderIKEMessage.cpp" />
     <ClCompile Include="ResponderIKEPayload.cpp" />
@@ -157,6 +158,7 @@ xcopy /y /d "$(SolutionDir)Openssl3.4\dllfolder\libssl-3-x64.dll" "$(OutDir)"
     <ClCompile Include="MessageHandling.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ResponderCertificate.h" />
     <ClInclude Include="ResponderIKEHeader.h" />
     <ClInclude Include="ResponderIKEMessage.h" />
     <ClInclude Include="ResponderIKEPayload.h" />

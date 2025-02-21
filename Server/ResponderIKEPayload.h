@@ -3,25 +3,32 @@
 #include <cstdint>
 #include <string>
 
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
 
-#define PAYLOAD_NONE        0   // No next payload
-#define PAYLOAD_SA          33  // Security Association
-#define PAYLOAD_KE          34  // Key Exchange
-#define PAYLOAD_IDI         35  // Identification - Initiator
-#define PAYLOAD_IDR         36  // Identification - Responder
-#define PAYLOAD_AUTH        39  // Authentication
-#define PAYLOAD_CERT        37  // Certificate
-#define PAYLOAD_CERTREQ     38  // Certificate Request
-#define PAYLOAD_NONCE       40  // Nonce (Ni/Nr)
-#define PAYLOAD_NOTIFY      41  // Notify
-#define PAYLOAD_DELETE      42  // Delete
-#define PAYLOAD_VENDOR_ID   43  // Vendor ID
-#define PAYLOAD_TSi         44  // Traffic Selector - Initiator
-#define PAYLOAD_TSr         45  // Traffic Selector - Responder
-#define PAYLOAD_CP          46  // Configuration Payload
-#define PAYLOAD_EAP         47  // Extensible Authentication Protocol (EAP)
 
-#define PAYLOAD_HEADER_SIZE 4
+enum class PayloadType : uint8_t {
+    NONE = 0,    // No next payload
+    SA = 33,   // Security Association
+    KE = 34,   // Key Exchange
+    IDI = 35,   // Identification - Initiator
+    IDR = 36,   // Identification - Responder
+    CERT = 37,   // Certificate
+    CERTREQ = 38,   // Certificate Request
+    AUTH = 39,   // Authentication
+    NONCE = 40,   // Nonce (Ni/Nr)
+    NOTIFY = 41,   // Notify
+    //DELETE = 42,   // Delete
+    VENDOR_ID = 43,   // Vendor ID
+    TSi = 44,   // Traffic Selector - Initiator
+    TSr = 45,   // Traffic Selector - Responder
+    CP = 46,   // Configuration Payload
+    EAP = 47    // Extensible Authentication Protocol (EAP)
+};
+
+constexpr uint16_t PAYLOAD_HEADER_SIZE = 4;
+
+
 // Generic IKE Payload Structure
 struct IKEPayload {
     uint8_t nextPayload;
@@ -35,12 +42,15 @@ struct IKEPayload {
 
 
 // KE Payload
-IKEPayload buildKEPayload(const std::string& publicKeyHex);
+IKEPayload buildKEPayload(const std::string& publicKeyHex, PayloadType nextType);
 IKEPayload parseKEPayload(const std::vector<uint8_t>& data);
 
 // Nonce (Ni/Nr) Payload
-IKEPayload buildNoncePayload(const std::string& nonceHex);
+IKEPayload buildNoncePayload(const std::string& nonceHex, PayloadType nextType);
 IKEPayload parseNoncePayload(const std::vector<uint8_t>& data);
+
+// CAREQ Payload 
+IKEPayload buildCAREQPayload(X509* certificate, PayloadType nextType); 
 
 std::vector<uint8_t> hexToBinary(const std::string& hex);
 std::string binaryToHex(const std::vector<uint8_t>& binary);

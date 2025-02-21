@@ -46,15 +46,15 @@ void Initiator::buildIKE_SA_INIT()
 	message.header.initiatorSPI = _ikeSPI; 
 	_peerSPI = 0; 
 	message.header.responderSPI = _peerSPI;
-	message.header.nextPayload = PAYLOAD_KE;
+	message.header.nextPayload = static_cast<uint32_t>(PayloadType::KE);
 	message.header.majorVersion = 2;
 	message.header.minorVersion = 0;
-	message.header.exchangeType = IKE_SA_INIT;
+	message.header.exchangeType = static_cast<uint32_t> (IKEExchangeType::SA_INIT);
 	message.header.messageID = _messageID;
 
 	// Build IKE payload 
-	IKEPayload kePayload = buildKEPayload(_publickey);
-	IKEPayload  noncePayload = buildNoncePayload(_nonce);
+	IKEPayload kePayload = buildKEPayload(_publickey, PayloadType::NONCE);
+	IKEPayload  noncePayload = buildNoncePayload(_nonce, PayloadType::NONE);
 	message.payloads.push_back(kePayload); 
 	message.payloads.push_back(noncePayload); 
 
@@ -81,6 +81,8 @@ void Initiator::processIKE_SA_INIT_Response(IKEMessage &response)
 	std::vector<uint8_t> binaryData = _network.receivePacket();
 	response.parseIKEmessage(binaryData); 
 
+	// Get SPI
+	_peerSPI = response.header.responderSPI;
 	//Get key and nonce 
 	std::string ResponderPublicDHKey = binaryToHex(response.payloads[0].data);
 
@@ -90,5 +92,27 @@ void Initiator::processIKE_SA_INIT_Response(IKEMessage &response)
 	_nonce = binaryToHex(response.payloads[1].data);
 
 	std::cout << "Nonce receive from responder:" << _nonce << std::endl;
+
+	// Get CERTREQ 
+	// Store raw CERTREQ data
+	_certReqRaw = response.payloads[2].data;
+
+	// First byte indicates certificate encoding type
+	_certEncoding = _certReqRaw[0];
+
+	// Parse X509 name from the remaining data
+	const unsigned char* namePtr = _certReqRaw.data() + 1;
+	X509_NAME* name = d2i_X509_NAME(NULL, &namePtr, _certReqRaw.size() - 1);
+
+	if (name) {
+		char* nameStr = X509_NAME_oneline(name, NULL, 0);
+		if (nameStr) {
+			_caIdentifier = nameStr;
+			OPENSSL_free(nameStr);
+		}
+		X509_NAME_free(name);
+	}
+
+	std::cout << "CA Identifier: " << _caIdentifier << std::endl;
 
 }

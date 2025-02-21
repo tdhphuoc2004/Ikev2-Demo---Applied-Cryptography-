@@ -46,11 +46,9 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
     payloads.clear();
 
     // Parse Payloads
-    uint8_t nextPayloadType = header.nextPayload;
-    while (nextPayloadType != PAYLOAD_NONE && offset < rawData.size())
+    PayloadType nextPayloadType = static_cast<PayloadType>(header.nextPayload);
+    while (nextPayloadType != PayloadType::NONE && offset < rawData.size())
     {
-        //  std::cout << "Parsing Payload Type: " << static_cast<int>(nextPayloadType) << std::endl;
-
         if (offset + 4 > rawData.size()) {
             std::cerr << "Error: Payload header truncated at offset " << offset << std::endl;
             return false;
@@ -59,8 +57,6 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
         IKEPayload payload;
         uint8_t savedNextPayload = data[offset];
         payload.nextPayload = data[offset++];
-
-        //     std::cout << "Next payload in chain: " << static_cast<int>(savedNextPayload) << std::endl;
 
         payload.critical = data[offset++];
         std::memcpy(&payload.payloadLength, data + offset, sizeof(uint16_t));
@@ -80,27 +76,30 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
             return false;
         }
 
-        //   std::cout << "Reading " << dataLength << " bytes of payload data" << std::endl;
-
         std::vector<uint8_t> payloadData(data + offset, data + offset + dataLength);
         offset += dataLength;
 
         switch (nextPayloadType) {
-        case PAYLOAD_KE:
+        case PayloadType::KE:
             payload = parseKEPayload(payloadData);
             payload.nextPayload = savedNextPayload;
             break;
-        case PAYLOAD_NONCE:
+        case PayloadType::NONCE:
             payload = parseNoncePayload(payloadData);
             payload.nextPayload = savedNextPayload;
             break;
+        case PayloadType::CERTREQ:
+            payload = parseCAREQPayload(payloadData); 
+            payload.nextPayload = savedNextPayload;
+            break; 
+
         default:
             payload.data = payloadData;
             break;
         }
 
         payloads.push_back(payload);
-        nextPayloadType = savedNextPayload;
+        nextPayloadType = static_cast<PayloadType>(savedNextPayload);
     }
 
     return true;

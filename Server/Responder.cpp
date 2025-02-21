@@ -1,8 +1,12 @@
 #include "Responder.h"
+
 #include "ResponderIKEHeader.h"
 #include "ResponderIKEMessage.h"
 #include "ResponderIKEPayload.h"
+
 #include "ResponderCrypto.h"
+#include "ResponderCertificate.h"
+
 
 std::string Responder::getDHprivatekey()
 {
@@ -52,9 +56,9 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     response.header.initiatorSPI = _peerSPI;
     _ikeSPI = generateSPI();
     response.header.responderSPI = _ikeSPI;
-    response.header.nextPayload = PAYLOAD_KE;  
+    response.header.nextPayload = static_cast<uint8_t> (PayloadType::KE);
     response.header.minorVersion = 0;
-    response.header.exchangeType = IKE_SA_INIT;
+    response.header.exchangeType = static_cast<uint8_t> (IKEExchangeType::SA_INIT);
     response.header.messageID = request.header.messageID;  // Message ID should match Initiator's
 
     //// Build SA Payload (Match Initiator’s cryptographic suite)
@@ -62,17 +66,22 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     //response.payloads.push_back(saPayload);
 
     // Build KE Payload 
-    IKEPayload kePayload = buildKEPayload(_publickey);
+    IKEPayload kePayload = buildKEPayload(_publickey, PayloadType::NONCE);
 
     // Build Nonce payload 
     std::string nonce = ""; 
     ResponderCrypto::generateNonce(nonce); 
     std::cout << "Nonce will sent to initator:" << nonce << std::endl;
-    IKEPayload noncePayload = buildNoncePayload(nonce); 
+    IKEPayload noncePayload = buildNoncePayload(nonce, PayloadType::CERTREQ); 
+
+    // Build CAREQ payload 
+    EVP_PKEY* publickeyRSA = generate_rsa_key(1024); 
+    X509* certificate = create_ca_certificate(publickeyRSA, 100); 
+    IKEPayload careqPayload = buildCAREQPayload(certificate, PayloadType::NONE); 
 
     response.payloads.push_back(kePayload);
     response.payloads.push_back(noncePayload);
-
+    response.payloads.push_back(careqPayload); 
 
     // Calculate total IKE message length
     uint32_t totalLength = IKE_HEADER_SIZE;
