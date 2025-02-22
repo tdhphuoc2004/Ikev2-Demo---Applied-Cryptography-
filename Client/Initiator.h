@@ -24,9 +24,7 @@ private:
     std::string _publickey = ""; 
     std::string _sharedSecret = "";
 
-    // Certificate 
-    std::vector<uint8_t> _certReqRaw;   
-    int _certEncoding;                  
+    // Certificate   
     std::string _caIdentifier;         
 
 

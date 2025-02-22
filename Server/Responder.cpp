@@ -75,9 +75,8 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     IKEPayload noncePayload = buildNoncePayload(nonce, PayloadType::CERTREQ); 
 
     // Build CAREQ payload 
-    EVP_PKEY* publickeyRSA = generate_rsa_key(1024); 
-    X509* certificate = create_ca_certificate(publickeyRSA, 100); 
-    IKEPayload careqPayload = buildCAREQPayload(certificate, PayloadType::NONE); 
+    const std::string caName = "/C=VN/O=GROUP5/CN=My Root CA";
+    IKEPayload careqPayload = buildCAREQPayload(caName, PayloadType::NONE);
 
     response.payloads.push_back(kePayload);
     response.payloads.push_back(noncePayload);

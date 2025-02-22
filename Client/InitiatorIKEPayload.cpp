@@ -111,49 +111,40 @@ IKEPayload parseNoncePayload(const std::vector<uint8_t>& data) {
 }
 
 // Build CAREQ payload 
-IKEPayload buildCAREQPayload(X509* certificate, PayloadType nextType)
+IKEPayload buildCAREQPayload(const std::string& caName, PayloadType nextType)
 {
     IKEPayload careq;
-    careq.nextPayload = static_cast<uint8_t> (nextType);
+    careq.nextPayload = static_cast<uint8_t>(nextType);
     careq.payloadLength = 0;
 
-    // Check if certificate is valid
-    if (!certificate) {
-        fprintf(stderr, "Error: Invalid certificate\n");
-        return careq;
-    }
-
-    // Get the certificate's subject name
-    X509_NAME* subject = X509_get_subject_name(certificate);
-    if (!subject) {
-        fprintf(stderr, "Failed to get certificate subject\n");
-        return careq;
-    }
-
-    // Convert subject to DER format
-    unsigned char* der_data = nullptr;
-    int der_length = i2d_X509_NAME(subject, &der_data);
-    if (der_length < 0 || !der_data) {
-        fprintf(stderr, "Failed to convert subject to DER format\n");
-        return careq;
-    }
-
-    // Create CAREQ data field 
-    // Certificate Encoding Type (X.509 Certificate - Signature)
+    // Create payload vector
     std::vector<uint8_t> payload;
-    payload.reserve(1 + der_length);
+
+    // Add certificate type (X.509 Certificate - Signature)
     payload.push_back(X509Cert_Signature);
 
-    // Add the DER-encoded subject name
-    payload.insert(payload.end(), der_data, der_data + der_length);
+    // Hash the CA name using SHA-256
+    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+    if (mdctx) {
+        std::vector<uint8_t> hash(EVP_MAX_MD_SIZE);
+        unsigned int hashLen;
 
-    // Free the DER data
-    OPENSSL_free(der_data);
+        if (EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) &&
+            EVP_DigestUpdate(mdctx, caName.c_str(), caName.length()) &&
+            EVP_DigestFinal_ex(mdctx, hash.data(), &hashLen)) {
+
+            // Add hash to payload
+            hash.resize(hashLen);
+            payload.insert(payload.end(), hash.begin(), hash.end());
+        }
+        EVP_MD_CTX_free(mdctx);
+    }
 
     // Set the payload data
     careq.data = std::move(payload);
     careq.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + careq.data.size());
 
+    fprintf(stdout, "Built CERTREQ payload for CA: %s\n", caName.c_str());
     return careq;
 }
 
@@ -163,8 +154,8 @@ IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data)
     careq.nextPayload = static_cast<uint8_t>(PayloadType::NONE);
     careq.payloadLength = 0;
 
-    // Check minimum payload size (at least certificate type byte)
-    if (data.size() < 1) {
+    // Check minimum payload size (cert type + at least some hash data)
+    if (data.size() < (1 + SHA256_DIGEST_LENGTH)) {
         fprintf(stderr, "Error: CAREQ payload too short\n");
         return careq;
     }
@@ -176,9 +167,20 @@ IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data)
         return careq;
     }
 
-    // Get the DER-encoded subject name (rest of payload after cert type)
-    std::vector<uint8_t> derData(data.begin() + 1, data.end());
+    // Extract CA hash (rest of payload after cert type)
+    std::vector<uint8_t> caHash(data.begin() + 1, data.end());
 
+    // Convert hash to hex string for display
+    std::string hashHex;
+    for (const auto& byte : caHash) {
+        char hex[3];
+        snprintf(hex, sizeof(hex), "%02x", byte);
+        hashHex += hex;
+    }
+
+    fprintf(stdout, "Parsed CERTREQ payload:\n");
+    fprintf(stdout, "Certificate Type: X.509 Certificate - Signature\n");
+    fprintf(stdout, "CA Hash: %s\n", hashHex.c_str());
 
     // Store complete payload data
     careq.data = data;
@@ -186,3 +188,79 @@ IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data)
 
     return careq;
 }
+
+//IKEPayload buildCAREQPayload(X509* certificate, PayloadType nextType)
+//{
+//    IKEPayload careq;
+//    careq.nextPayload = static_cast<uint8_t> (nextType);
+//    careq.payloadLength = 0;
+//
+//    // Check if certificate is valid
+//    if (!certificate) {
+//        fprintf(stderr, "Error: Invalid certificate\n");
+//        return careq;
+//    }
+//
+//    // Get the certificate's subject name
+//    X509_NAME* subject = X509_get_subject_name(certificate);
+//    if (!subject) {
+//        fprintf(stderr, "Failed to get certificate subject\n");
+//        return careq;
+//    }
+//
+//    // Convert subject to DER format
+//    unsigned char* der_data = nullptr;
+//    int der_length = i2d_X509_NAME(subject, &der_data);
+//    if (der_length < 0 || !der_data) {
+//        fprintf(stderr, "Failed to convert subject to DER format\n");
+//        return careq;
+//    }
+//
+//    // Create CAREQ data field 
+//    // Certificate Encoding Type (X.509 Certificate - Signature)
+//    std::vector<uint8_t> payload;
+//    payload.reserve(1 + der_length);
+//    payload.push_back(X509Cert_Signature);
+//
+//    // Add the DER-encoded subject name
+//    payload.insert(payload.end(), der_data, der_data + der_length);
+//
+//    // Free the DER data
+//    OPENSSL_free(der_data);
+//
+//    // Set the payload data
+//    careq.data = std::move(payload);
+//    careq.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + careq.data.size());
+//
+//    return careq;
+//}
+
+//IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data)
+//{
+//    IKEPayload careq;
+//    careq.nextPayload = static_cast<uint8_t>(PayloadType::NONE);
+//    careq.payloadLength = 0;
+//
+//    // Check minimum payload size (at least certificate type byte)
+//    if (data.size() < 1) {
+//        fprintf(stderr, "Error: CAREQ payload too short\n");
+//        return careq;
+//    }
+//
+//    // Get certificate encoding type
+//    uint8_t certType = data[0];
+//    if (certType != X509Cert_Signature) {
+//        fprintf(stderr, "Error: Unsupported certificate type: %d\n", certType);
+//        return careq;
+//    }
+//
+//    // Get the DER-encoded subject name (rest of payload after cert type)
+//    std::vector<uint8_t> derData(data.begin() + 1, data.end());
+//
+//
+//    // Store complete payload data
+//    careq.data = data;
+//    careq.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + data.size());
+//
+//    return careq;
+//}

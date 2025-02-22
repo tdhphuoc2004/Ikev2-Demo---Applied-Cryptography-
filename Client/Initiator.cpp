@@ -93,26 +93,25 @@ void Initiator::processIKE_SA_INIT_Response(IKEMessage &response)
 
 	std::cout << "Nonce receive from responder:" << _nonce << std::endl;
 
-	// Get CERTREQ 
-	// Store raw CERTREQ data
-	_certReqRaw = response.payloads[2].data;
+	// Get CERTREQ payload
 
-	// First byte indicates certificate encoding type
-	_certEncoding = _certReqRaw[0];
+	std::vector<uint8_t> certReqRaw = response.payloads[2].data;
 
-	// Parse X509 name from the remaining data
-	const unsigned char* namePtr = _certReqRaw.data() + 1;
-	X509_NAME* name = d2i_X509_NAME(NULL, &namePtr, _certReqRaw.size() - 1);
-
-	if (name) {
-		char* nameStr = X509_NAME_oneline(name, NULL, 0);
-		if (nameStr) {
-			_caIdentifier = nameStr;
-			OPENSSL_free(nameStr);
+	if (certReqRaw.size() >= (1 + SHA256_DIGEST_LENGTH)) {
+		// Skip certificate type byte and convert hash to hex string
+		_caIdentifier.clear();
+		for (size_t i = 1; i < certReqRaw.size(); i++) {
+			char hex[3];
+			snprintf(hex, sizeof(hex), "%02x", certReqRaw[i]);
+			_caIdentifier += hex;
 		}
-		X509_NAME_free(name);
+
+		std::cout << "CA Hash: " << _caIdentifier << std::endl;
+	}
+	else {
+		std::cerr << "Error: Invalid CERTREQ payload size" << std::endl;
 	}
 
-	std::cout << "CA Identifier: " << _caIdentifier << std::endl;
+
 
 }

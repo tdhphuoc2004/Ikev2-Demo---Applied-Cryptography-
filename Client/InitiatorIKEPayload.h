@@ -49,7 +49,7 @@ IKEPayload buildNoncePayload(const std::string& nonceHex, PayloadType nextType);
 IKEPayload parseNoncePayload(const std::vector<uint8_t>& data);
 
 // CAREQ Payload 
-IKEPayload buildCAREQPayload(X509* certificate, PayloadType nextType);
+IKEPayload buildCAREQPayload(const std::string& caName, PayloadType nextType); 
 IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data); 
 
 std::vector<uint8_t> hexToBinary(const std::string& hex);

@@ -41,12 +41,12 @@ void InitiatorNetwork::connectToResponder() {
 void InitiatorNetwork::sendPacket(const std::vector<uint8_t>& data) {
     send(sock, reinterpret_cast<const char*>(data.data()), data.size(), 0);
 
-    // Optional: Print hex representation of sent data
-    std::cout << "Sent packet (" << data.size() << " bytes): ";
-    for (const auto& byte : data) {
-        printf("%02x ", byte);
-    }
-    std::cout << std::endl;
+    //// Optional: Print hex representation of sent data
+    //std::cout << "Sent packet (" << data.size() << " bytes): ";
+    //for (const auto& byte : data) {
+    //    printf("%02x ", byte);
+    //}
+    //std::cout << std::endl;
 }
 
 // Receive a packet
@@ -62,12 +62,12 @@ std::vector<uint8_t> InitiatorNetwork::receivePacket() {
     // Resize buffer to actual received bytes
     buffer.resize(receivedBytes);
 
-    // Debug output: print received bytes in hex
-    std::cout << "Received " << receivedBytes << " bytes: ";
-    for (const auto& byte : buffer) {
-        printf("%02x ", byte);
-    }
-    std::cout << std::endl;
+    //// Debug output: print received bytes in hex
+    //std::cout << "Received " << receivedBytes << " bytes: ";
+    //for (const auto& byte : buffer) {
+    //    printf("%02x ", byte);
+    //}
+    //std::cout << std::endl;
 
     return buffer;
 }
