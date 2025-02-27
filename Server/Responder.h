@@ -16,28 +16,46 @@ private:
     const std::string _integrityAlgorithm = "HMAC-SHA-256-128";
     const std::string _prfAlgorithm = "HMAC-SHA-256";
 
-    uint32_t _messageID;
+    std::string _identity;
 
+    // Nonce 
+    std::string _nonceI = "";
+    std::string _nonceR = "";
+
+    // DH in Elliptic Curve 
     std::string _privatekey = "";
     std::string _publickey = "";
     std::string _sharedSecret = "";
 
-    // Authentication
-    std::string _identity;
-    std::string _nonce;
+    // Certificate   
+    std::string _caIdentifier;
+    std::string _certificate;
+    std::string _peerCertificate;
 
-    // Traffic selectors
+    // SKEYSEED and cryptographic key 
+    std::string _skeyseed;   // Giá tr? SKEYSEED tính t? DH & Nonce  
+    std::string _sk_d;
+    std::string _sk_ai;
+    std::string _sk_ar;
+    std::string _sk_ei;
+    std::string _sk_er;
+
+    //  Authentication 
+    std::string _authData;      // AUTH payload g?i ?i  
+    std::string _peerAuthData;  // AUTH payload nh?n ???c t? Responder  
+
+    uint32_t _messageID;
+
     std::string _trafficSelectors;
-
-    // State tracking
     std::string _state;
 
-    ResponderNetwork& _network;  // Reference to networking class
+    ResponderNetwork& _network;
 
 public:
     std::string getDHprivatekey();
     std::string getDHpublickey(); 
-    std::string getNonce();
+    std::string getNonceI();
+    std::string getNonceR();
     std::string getsharedSecret();
 
 public:

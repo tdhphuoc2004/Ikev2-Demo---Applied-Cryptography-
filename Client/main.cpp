@@ -15,6 +15,7 @@ int main()
         Initiator initiator(network); 
         initiator.buildIKE_SA_INIT(); 
         initiator.processIKE_SA_INIT_Response(message); 
+        initiator.buildIKE_AUTH(); 
     }
     else
     {

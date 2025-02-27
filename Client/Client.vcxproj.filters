@@ -71,5 +71,8 @@
     <ClInclude Include="InitiatorCertificate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SAPayload.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

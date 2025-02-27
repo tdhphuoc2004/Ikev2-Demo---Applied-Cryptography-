@@ -18,9 +18,14 @@ std::string Responder::getDHpublickey()
 	return _publickey;
 }
 
-std::string Responder::getNonce()
+std::string Responder::getNonceI()
 {
-	return _nonce;
+	return _nonceI;
+}
+
+std::string Responder::getNonceR()
+{
+    return _nonceR;
 }
 
 std::string Responder::getsharedSecret()
@@ -43,8 +48,8 @@ void Responder::processIKE_SA_INIT(IKEMessage &request)
 	ResponderCrypto::calculateSharedSecret(InitiatorDHKey, _privatekey, _sharedSecret);
 	std::cout << "shared Secret:" << _sharedSecret << std::endl; 
 
-	_nonce = binaryToHex(request.payloads[1].data);
-    std::cout << "Nonce from initator:" << _nonce <<  std::endl; 
+	_nonceI = binaryToHex(request.payloads[1].data);
+    std::cout << "Nonce from initator:" << _nonceI <<  std::endl;
 }
 
 void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
@@ -69,10 +74,9 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     IKEPayload kePayload = buildKEPayload(_publickey, PayloadType::NONCE);
 
     // Build Nonce payload 
-    std::string nonce = ""; 
-    ResponderCrypto::generateNonce(nonce); 
-    std::cout << "Nonce will sent to initator:" << nonce << std::endl;
-    IKEPayload noncePayload = buildNoncePayload(nonce, PayloadType::CERTREQ); 
+    ResponderCrypto::generateNonce(_nonceR); 
+    std::cout << "Nonce will sent to initator:" << _nonceR << std::endl;
+    IKEPayload noncePayload = buildNoncePayload(_nonceR, PayloadType::CERTREQ);
 
     // Build CAREQ payload 
     const std::string caName = "/C=VN/O=GROUP5/CN=My Root CA";
@@ -97,4 +101,21 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     std::vector<uint8_t> binarymessage = response.toByteArray();
     _network.sendPacket(binarymessage);
 
+}
+
+void Responder::processIKE_AUTH()
+{
+    // Calculating SKEYSEED
+    _skeyseed = ResponderCrypto::generateSKEYSEED(_sharedSecret, _nonceI, _nonceR);
+    std::cout << "Skeyseed:" << _skeyseed << std::endl;
+    std::cout << "my SPI:" << _ikeSPI << std::endl;
+    std::cout << "peer SPI:" << _peerSPI << std::endl;
+    // Deriving keys 
+    ResponderCrypto::deriveKeys(_skeyseed, _nonceI, _nonceR, _ikeSPI, _peerSPI, _sk_d, _sk_ai, _sk_ar, _sk_ei, _sk_er);
+    std::cout << "==================" << std::endl;
+    std::cout << "Key child SA:" << _sk_d << std::endl;
+    std::cout << "Key auth initiator:" << _sk_ai << std::endl;
+    std::cout << "Key auth responder:" << _sk_ar << std::endl;
+    std::cout << "Key encrypt initiator:" << _sk_ei << std::endl;
+    std::cout << "Key encrypt responder:" << _sk_er << std::endl;
 }

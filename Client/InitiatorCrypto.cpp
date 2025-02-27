@@ -103,6 +103,81 @@ void InitiatorCrypto::calculateSharedSecret(
 }
 
 
+// Function to generate SKEYSEED using HMAC-SHA256
+std::string InitiatorCrypto::generateSKEYSEED(const std::string& sharedSecret, const std::string& nonceI, const std::string& nonceR) 
+{
+    // Convert hex inputs to binary
+    CryptoPP::SecByteBlock secret = hexToSecByteBlock(sharedSecret);
+    CryptoPP::SecByteBlock ni = hexToSecByteBlock(nonceI);
+    CryptoPP::SecByteBlock nr = hexToSecByteBlock(nonceR);
+
+    // Concatenate nonces (Ni | Nr)
+    CryptoPP::SecByteBlock nonceData(ni.size() + nr.size());
+    memcpy(nonceData, ni.data(), ni.size());
+    memcpy(nonceData + ni.size(), nr.data(), nr.size());
+
+    // Prepare output buffer for SKEYSEED
+    CryptoPP::SecByteBlock skeyseed(CryptoPP::SHA256::DIGESTSIZE);
+
+    // Calculate HMAC-SHA256
+    CryptoPP::HMAC<CryptoPP::SHA256> hmac(secret, secret.size());
+    hmac.CalculateDigest(skeyseed, nonceData, nonceData.size());
+
+    // Convert result to hex
+    std::string result;
+    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(result));
+    encoder.Put(skeyseed, skeyseed.size());
+    encoder.MessageEnd();
+
+    return result;
+}
+
+std::string InitiatorCrypto::deriveKey(const std::string& key, const std::string& label, const std::string& baseString)
+{
+    CryptoPP::SecByteBlock keyBytes = hexToSecByteBlock(key);
+    std::string derivationData = label + baseString;
+
+    CryptoPP::SecByteBlock derivedKey(CryptoPP::SHA256::DIGESTSIZE);
+    CryptoPP::HMAC<CryptoPP::SHA256> hmac(keyBytes, keyBytes.size());
+    hmac.CalculateDigest(derivedKey,
+        reinterpret_cast<const CryptoPP::byte*>(derivationData.data()),
+        derivationData.size());
+
+    std::string result;
+    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(result));
+    encoder.Put(derivedKey, derivedKey.size());
+    encoder.MessageEnd();
+
+    return result;
+}
+
+void InitiatorCrypto::deriveKeys
+(
+    const std::string& skeyseed,
+    const std::string& nonceI,
+    const std::string& nonceR,
+    const uint64_t spiI,
+    const uint64_t spiR,
+    std::string& sk_d,
+    std::string& sk_ai,
+    std::string& sk_ar,
+    std::string& sk_ei,
+    std::string& sk_er
+)
+{
+    // Create base string for key derivation
+    std::stringstream ss;
+    ss << nonceI << nonceR << std::hex << spiI << spiR;
+    std::string baseString = ss.str();
+
+    // Derive all keys
+    sk_d = deriveKey(skeyseed, "\x00", baseString);
+    sk_ai = deriveKey(sk_d, "\x01", baseString);
+    sk_ar = deriveKey(sk_d, "\x02", baseString);
+    sk_ei = deriveKey(sk_d, "\x03", baseString);
+    sk_er = deriveKey(sk_d, "\x04", baseString);
+}
+
 
 //std::string InitiatorCrypto::encryptMessage(const std::string& plaintext, const std::string& key, const std::string& iv) {
 //    CryptoPP::GCM<CryptoPP::AES>::Encryption encryption;

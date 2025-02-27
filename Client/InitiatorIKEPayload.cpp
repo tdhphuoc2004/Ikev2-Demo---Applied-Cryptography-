@@ -2,6 +2,7 @@
 #include "InitiatorIKEMessage.h"
 #include "InitiatorCertificate.h"
 #include "InitiatorIKEPayload.h"
+#include "SAPayload.h"
 
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
@@ -62,7 +63,63 @@ std::string binaryToHex(const std::vector<uint8_t>& binary)
 
     return hex;
 }
+// Build SA Payload
 
+// Function to encode a single Proposal 
+//std::vector<uint8_t> encodeProposal(const Proposal& proposal, bool isLast) 
+//{
+//    std::vector<uint8_t> proposalData;
+//
+//    // First byte: Last Substruc (2 if last proposal, 0 otherwise)
+//    proposalData.push_back(isLast ? 2 : 0);
+//
+//    // Placeholder for Proposal Length (2 bytes)
+//    proposalData.push_back(0x00);
+//    proposalData.push_back(0x00);
+//
+//    // Proposal fields
+//    proposalData.push_back(proposal.proposalNumber);
+//    proposalData.push_back(proposal.protocolID);
+//    proposalData.push_back(proposal.transforms.size()); // Number of transforms
+//
+//    // Encode Transforms
+//    for (const auto& transform : proposal.transforms) 
+//    {
+//        proposalData.push_back(static_cast<uint8_t>(transform.type)); // Transform Type
+//        proposalData.push_back((transform.transformID >> 8) & 0xFF);
+//        proposalData.push_back(transform.transformID & 0xFF);
+//    }
+//
+//    // Update Proposal Length
+//    uint16_t proposalLength = proposalData.size();
+//    proposalData[2] = (proposalLength >> 8) & 0xFF;
+//    proposalData[3] = proposalLength & 0xFF;
+//
+//    return proposalData;
+//}
+
+
+// Function to build SA Payload with multiple proposals
+//IKEPayload buildSAPayload(const std::vector<Proposal>& proposals, PayloadType nextType) {
+//    IKEPayload saPayload;
+//    saPayload.nextPayload = static_cast<uint8_t>(nextType);
+//
+//    // Encode each proposal
+//    for (size_t i = 0; i < proposals.size(); ++i) 
+//    {
+//        bool isLast = (i == proposals.size() - 1);
+//        std::vector<uint8_t> proposalData = encodeProposal(proposals[i], isLast);
+//        saPayload.data.insert(saPayload.data.end(), proposalData.begin(), proposalData.end());
+//    }
+//
+//
+//    // Compute SA Payload Length
+//    saPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + saPayload.data.size());
+//    std::cout << "SA Payload Length: " << saPayload.payloadLength << " bytes" << std::endl;
+//
+//    return saPayload;
+//}
+ 
 // Build Key Exchange (KE) Payload
 IKEPayload buildKEPayload(const std::string& publicKeyHex, PayloadType nextType) {
     IKEPayload ke;

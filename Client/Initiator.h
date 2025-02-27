@@ -17,7 +17,8 @@ private:
     std::string _identity;
 
     // Nonce 
-    std::string _nonce = "";
+    std::string _nonceI = "";
+    std::string _nonceR = "";
 
     // DH in Elliptic Curve 
     std::string _privatekey = "";
@@ -26,7 +27,20 @@ private:
 
     // Certificate   
     std::string _caIdentifier;         
+    std::string _certificate;   
+    std::string _peerCertificate;
 
+    // SKEYSEED and cryptographic key 
+    std::string _skeyseed;   
+    std::string _sk_d;       
+    std::string _sk_ai;      
+    std::string _sk_ar;      
+    std::string _sk_ei;      
+    std::string _sk_er;      
+
+    //  Authentication 
+    std::string _authData;      
+    std::string _peerAuthData;  
 
     uint32_t _messageID; 
 
@@ -38,8 +52,10 @@ private:
 public:
     std::string getDHprivatekey();
     std::string getDHpublickey(); 
-    std::string getNonce(); 
+    std::string getNonceI(); 
+    std::string getNonceR();
     std::string getsharedSecret(); 
+    std::string getCAIndentifer(); 
 
 public:
     // Constructor
@@ -53,7 +69,7 @@ public:
     void buildIKE_SA_INIT();
     void processIKE_SA_INIT_Response(IKEMessage &response);
 
-    //void buildIKE_AUTH();
+    void buildIKE_AUTH();
     //void processIKE_AUTH_Response();
     //void authenticate();
     //void createChildSA();

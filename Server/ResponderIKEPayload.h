@@ -17,13 +17,6 @@ enum class PayloadType : uint8_t {
     CERTREQ = 38,   // Certificate Request
     AUTH = 39,   // Authentication
     NONCE = 40,   // Nonce (Ni/Nr)
-    NOTIFY = 41,   // Notify
-    //DELETE = 42,   // Delete
-    VENDOR_ID = 43,   // Vendor ID
-    TSi = 44,   // Traffic Selector - Initiator
-    TSr = 45,   // Traffic Selector - Responder
-    CP = 46,   // Configuration Payload
-    EAP = 47    // Extensible Authentication Protocol (EAP)
 };
 
 constexpr uint16_t PAYLOAD_HEADER_SIZE = 4;

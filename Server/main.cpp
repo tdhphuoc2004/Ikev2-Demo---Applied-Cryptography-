@@ -19,7 +19,7 @@ int main()
         IKEMessage message; 
         responder.processIKE_SA_INIT(message);
         responder.buildIKE_SA_INIT_Response(message);
-
+        responder.processIKE_AUTH(); 
         system("Pause"); 
     }
     else
