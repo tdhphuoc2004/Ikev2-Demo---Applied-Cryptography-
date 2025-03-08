@@ -13,9 +13,17 @@ int main()
     {
         IKEMessage message; 
         Initiator initiator(network); 
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl; 
         initiator.buildIKE_SA_INIT(); 
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
         initiator.processIKE_SA_INIT_Response(message); 
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
         initiator.buildIKE_AUTH(); 
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
     }
     else
     {

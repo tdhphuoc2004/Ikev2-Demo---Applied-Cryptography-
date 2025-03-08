@@ -17,7 +17,8 @@
 using namespace CryptoPP;
 
 // Convert Generic Payload to Binary
-std::vector<uint8_t> IKEPayload::toByteArray() {
+std::vector<uint8_t> IKEPayload::toByteArray() 
+{
     std::vector<uint8_t> buffer(PAYLOAD_HEADER_SIZE + data.size(), 0);
 
     buffer[0] = nextPayload;
@@ -28,38 +29,32 @@ std::vector<uint8_t> IKEPayload::toByteArray() {
     return buffer;
 }
 
-std::vector<uint8_t> hexToBinary(const std::string& hex) {
-    // Allocate vector with correct size (hex string length / 2)
+std::vector<uint8_t> hexToBinary(const std::string& hex) 
+{
     std::vector<uint8_t> binary(hex.size() / 2);
-
-    try {
-        CryptoPP::StringSource(hex, true,
-            new CryptoPP::HexDecoder(
-                new CryptoPP::ArraySink(binary.data(), binary.size())
-            )
-        );
-    }
-    catch (const CryptoPP::Exception& e) {
-        // Handle invalid hex string
-        throw std::runtime_error("Invalid hex string: " + std::string(e.what()));
-    }
-
+    CryptoPP::StringSource
+    ( hex, true,
+        new CryptoPP::HexDecoder
+        (
+            new CryptoPP::ArraySink(binary.data(), binary.size())
+        )
+    );
     return binary;
 }
 
 std::string binaryToHex(const std::vector<uint8_t>& binary)
 {
     std::string hex;
-
-    CryptoPP::StringSource(
+    CryptoPP::StringSource
+    (
         binary.data(),
         binary.size(),
         true,
-        new CryptoPP::HexEncoder(
+        new CryptoPP::HexEncoder
+        (
             new CryptoPP::StringSink(hex)
         )
     );
-
     return hex;
 }
 
@@ -70,7 +65,6 @@ IKEPayload buildKEPayload(const std::string& publicKeyHex, PayloadType nextType)
     // Convert hex public key to binary using Crypto++
     ke.data = hexToBinary(publicKeyHex);
     ke.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + ke.data.size());
-    std::cout << "KE payload:" << ke.payloadLength << std::endl;
     return ke;
 }
 
@@ -78,10 +72,7 @@ IKEPayload buildKEPayload(const std::string& publicKeyHex, PayloadType nextType)
 IKEPayload parseKEPayload(const std::vector<uint8_t>& data) {
     IKEPayload ke;
     ke.data = data;
-
     std::string publicKeyHex = binaryToHex(ke.data);
-    std::cout << "Parsed KE public key: " << publicKeyHex << std::endl;
-
     ke.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + ke.data.size());
     return ke;
 }
@@ -94,7 +85,6 @@ IKEPayload buildNoncePayload(const std::string& nonceHex, PayloadType nextType) 
     // Convert hex nonce to binary using Crypto++
     nonce.data = hexToBinary(nonceHex);
     nonce.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + nonce.data.size());
-    std::cout << "Nonce payload:" << nonce.payloadLength << std::endl;
     return nonce;
 }
 
@@ -102,16 +92,13 @@ IKEPayload buildNoncePayload(const std::string& nonceHex, PayloadType nextType) 
 IKEPayload parseNoncePayload(const std::vector<uint8_t>& data) {
     IKEPayload nonce;
     nonce.data = data;
-
     std::string nonceHex = binaryToHex(nonce.data);
-    std::cout << "Parsed Nonce: " << nonceHex << std::endl;
-
     nonce.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + nonce.data.size());
     return nonce;
 }
 
 
-// Build Nonce CAREQ Payload
+// Build CAREQ Payload
 IKEPayload buildCAREQPayload(const std::string& caName, PayloadType nextType)
 {
     IKEPayload careq;
@@ -149,6 +136,7 @@ IKEPayload buildCAREQPayload(const std::string& caName, PayloadType nextType)
     return careq;
 }
 
+// Parse CAREQ payload
 IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data)
 {
     IKEPayload careq;

@@ -1,4 +1,6 @@
-#include "ResponderCrypto.h"
+﻿#include "ResponderCrypto.h"
+#include "Utils.h"
+
 #include <cryptlib.h>
 #include <dh.h>
 #include <osrng.h>
@@ -16,91 +18,35 @@ void ResponderCrypto::generateDHKey(std::string& privateKeyHex, std::string& pub
 
     CryptoPP::ECDH<CryptoPP::ECP>::Domain dhDomain(dhParams);
 
-    // Generate keys 
+    // Generating keys 
     CryptoPP::SecByteBlock privateKey(dhDomain.PrivateKeyLength());
     CryptoPP::SecByteBlock pubKey(dhDomain.PublicKeyLength());
     dhDomain.GenerateKeyPair(rng, privateKey, pubKey);
 
-    // Convert private key to hex
+    // Converting private key to hex
     privateKeyHex.clear();
     CryptoPP::HexEncoder privEncoder(new CryptoPP::StringSink(privateKeyHex));
     privEncoder.Put(privateKey, privateKey.size());
     privEncoder.MessageEnd();
 
-    // Convert public key to hex (includes '04' prefix automatically)
+    // Converting public key to hex 
     publicKeyHex.clear();
     CryptoPP::HexEncoder pubEncoder(new CryptoPP::StringSink(publicKeyHex));
     pubEncoder.Put(pubKey, pubKey.size());
     pubEncoder.MessageEnd();
 }
 
-void ResponderCrypto::generateNonce(std::string& nonce) {
+void ResponderCrypto::generateNonce(std::string& nonce) 
+{
     CryptoPP::AutoSeededRandomPool rng;
     CryptoPP::byte randomBytes[16]; // 16-byte nonce
     rng.GenerateBlock(randomBytes, sizeof(randomBytes));
 
-    // Convert to hex string
+    // Converting to hex string
     CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(nonce));
     encoder.Put(randomBytes, sizeof(randomBytes));
     encoder.MessageEnd();
 }
-
-
-
-// Convert Hex-Encoded String to SecByteBlock
-CryptoPP::SecByteBlock hexToSecByteBlock(const std::string& hexStr) 
-{
-    CryptoPP::SecByteBlock byteBlock(hexStr.size() / 2); // Each byte = 2 hex chars
-
-    CryptoPP::StringSource(hexStr, true,
-        new CryptoPP::HexDecoder(
-            new CryptoPP::ArraySink(byteBlock, byteBlock.size())
-        )
-    );
-
-    return byteBlock;
-}
-
-// Convert SecByteBlock to Hex String
-std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock) {
-    std::string hexStr;
-
-    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(hexStr));
-    encoder.Put(byteBlock, byteBlock.size());
-    encoder.MessageEnd();
-
-    return hexStr;
-}
-
-// Function to generate SKEYSEED using HMAC-SHA256
-std::string ResponderCrypto::generateSKEYSEED(const std::string& sharedSecret, const std::string& nonceI, const std::string& nonceR)
-{
-    // Convert hex inputs to binary
-    CryptoPP::SecByteBlock secret = hexToSecByteBlock(sharedSecret);
-    CryptoPP::SecByteBlock ni = hexToSecByteBlock(nonceI);
-    CryptoPP::SecByteBlock nr = hexToSecByteBlock(nonceR);
-
-    // Concatenate nonces (Ni | Nr)
-    CryptoPP::SecByteBlock nonceData(ni.size() + nr.size());
-    memcpy(nonceData, ni.data(), ni.size());
-    memcpy(nonceData + ni.size(), nr.data(), nr.size());
-
-    // Prepare output buffer for SKEYSEED
-    CryptoPP::SecByteBlock skeyseed(CryptoPP::SHA256::DIGESTSIZE);
-
-    // Calculate HMAC-SHA256
-    CryptoPP::HMAC<CryptoPP::SHA256> hmac(secret, secret.size());
-    hmac.CalculateDigest(skeyseed, nonceData, nonceData.size());
-
-    // Convert result to hex
-    std::string result;
-    CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(result));
-    encoder.Put(skeyseed, skeyseed.size());
-    encoder.MessageEnd();
-
-    return result;
-}
-
 
 void ResponderCrypto::calculateSharedSecret(
     const std::string& initiatorPublicKeyHex,
@@ -112,69 +58,166 @@ void ResponderCrypto::calculateSharedSecret(
         throw std::invalid_argument("Empty public/private key input");
     }
 
-    // Initialize ECDH parameters for secp256r1 (NIST P-256, Group 19)
+    // Initializing ECDH parameters for secp256r1 (NIST P-256, Group 19)
     CryptoPP::DL_GroupParameters_EC<CryptoPP::ECP> dhParams;
     dhParams.Initialize(CryptoPP::ASN1::secp256r1());
     CryptoPP::ECDH<CryptoPP::ECP>::Domain dhDomain(dhParams);
 
-    // Convert initiator's public key from hex to SecByteBlock
+    // Converting initiator's public key from hex to SecByteBlock
     CryptoPP::SecByteBlock initiatorPublicKey = hexToSecByteBlock(initiatorPublicKeyHex);
 
-    // Convert responder's private key from hex to SecByteBlock
+    // Converting responder's private key from hex to SecByteBlock
     CryptoPP::SecByteBlock responderPrivateKey = hexToSecByteBlock(responderPrivateKeyHex);
 
   
-    // Compute shared secret
+    // Computing shared secret
     CryptoPP::SecByteBlock sharedSecret(dhDomain.AgreedValueLength());
     if (!dhDomain.Agree(sharedSecret, responderPrivateKey, initiatorPublicKey)) {
         throw std::runtime_error("ECDH key agreement failed");
     }
 
-    // Convert shared secret to hex
+    // Converting shared secret to hex
     sharedSecretHex = secByteBlockToHex(sharedSecret);
 }
-std::string ResponderCrypto::deriveKey(const std::string& key, const std::string& label, const std::string& baseString)
+
+
+// Pseudo random function using HMAC-SHA 256 
+std::string ResponderCrypto::prf(const std::string& keyHex, const std::string& data)
 {
-    CryptoPP::SecByteBlock keyBytes = hexToSecByteBlock(key);
-    std::string derivationData = label + baseString;
-
-    CryptoPP::SecByteBlock derivedKey(CryptoPP::SHA256::DIGESTSIZE);
+    CryptoPP::SecByteBlock keyBytes = hexToSecByteBlock(keyHex);
     CryptoPP::HMAC<CryptoPP::SHA256> hmac(keyBytes, keyBytes.size());
-    hmac.CalculateDigest(derivedKey,
-        reinterpret_cast<const CryptoPP::byte*>(derivationData.data()),
-        derivationData.size());
+    CryptoPP::SecByteBlock digest(CryptoPP::SHA256::DIGESTSIZE);
+    hmac.CalculateDigest(
+        digest,
+        reinterpret_cast<const CryptoPP::byte*>(data.data()),
+        data.size());
+    return std::string(reinterpret_cast<const char*>(digest.data()), digest.size());
+}
 
+// Function to generate SKEYSEED 
+std::string ResponderCrypto::generateSKEYSEED(const std::string& sharedSecret, const std::string& nonceI, const std::string& nonceR)
+{
+    // Converting hex inputs to binary
+    CryptoPP::SecByteBlock ni = hexToSecByteBlock(nonceI);
+    CryptoPP::SecByteBlock nr = hexToSecByteBlock(nonceR);
+
+    // Concatenate nonces (Ni || Nr) to create the binary seed
+    std::string nonceData;
+    nonceData.append(reinterpret_cast<const char*>(ni.data()), ni.size());
+    nonceData.append(reinterpret_cast<const char*>(nr.data()), nr.size());
+
+    // Using prf function to calculate HMAC-SHA256
+    std::string binarySkeyseed = prf(sharedSecret, nonceData);
+
+    // Converting binary result to hex
     std::string result;
     CryptoPP::HexEncoder encoder(new CryptoPP::StringSink(result));
-    encoder.Put(derivedKey, derivedKey.size());
+    encoder.Put(reinterpret_cast<const CryptoPP::byte*>(binarySkeyseed.data()), binarySkeyseed.size());
     encoder.MessageEnd();
 
     return result;
 }
 
-void ResponderCrypto::deriveKeys
-(
-    const std::string& skeyseed,
-    const std::string& nonceI,
-    const std::string& nonceR,
-    const uint64_t spiI,
-    const uint64_t spiR,
-    std::string& sk_d,
-    std::string& sk_ai,
-    std::string& sk_ar,
-    std::string& sk_ei,
-    std::string& sk_er
-)
+// PRF+ key expansion (Expands a key into arbitrary-length keying material using iterative HMAC) 
+std::string ResponderCrypto::prfPlus(const std::string& keyHex, const std::string& seed, size_t desiredLen)
 {
-    // Create base string for key derivation
-    std::stringstream ss;
-    ss << nonceI << nonceR << std::hex << spiI << spiR;
-    std::string baseString = ss.str();
+    // Convert hex key to raw bytes
+    CryptoPP::SecByteBlock keyBytes = hexToSecByteBlock(keyHex);
 
-    // Derive all keys
-    sk_d = deriveKey(skeyseed, "\x00", baseString);
-    sk_ai = deriveKey(sk_d, "\x01", baseString);
-    sk_ar = deriveKey(sk_d, "\x02", baseString);
-    sk_ei = deriveKey(sk_d, "\x03", baseString);
-    sk_er = deriveKey(sk_d, "\x04", baseString);
+    CryptoPP::HMAC<CryptoPP::SHA256> hmac(keyBytes, keyBytes.size());
+    std::string output;
+    output.reserve(desiredLen);
+
+    // T_{i-1} in the RFC text (initially empty)
+    std::string tPrev;
+
+    // The block counter (begin with 0x01) 
+    unsigned char blockIndex = 1;
+
+    // Keep generating 32-byte blocks until we have enough
+    while (output.size() < desiredLen)
+    {
+        // Input for each iteration: T_{i-1} || seed || block_index
+        std::string hmacInput = tPrev + seed + static_cast<char>(blockIndex);
+
+        // Calculate T_i = PRF(Skeyseed, T_{i-1} || seed || block_index)
+        std::string t_i = prf(keyHex, hmacInput);
+
+        tPrev = t_i;
+        output.append(t_i);
+        blockIndex++;
+    }
+
+    // Truncate if we collected more than needed and returning in binary format 
+    output.resize(desiredLen);
+    return output;  
 }
+
+void ResponderCrypto::deriveKeys(const std::string& skeyseedHex, const std::string& nonceI,
+    const std::string& nonceR, uint64_t spiI, 
+    uint64_t spiR, std::string& sk_dHex, std::string& sk_aiHex, 
+    std::string& sk_arHex, std::string& sk_eiHex, std::string& sk_erHex)
+{
+    // Building the seed (nonceI||nonceR||spiI||spiR) 
+    std::string seed; 
+    CryptoPP::SecByteBlock nonceIBin = hexToSecByteBlock(nonceI);
+    seed.append(reinterpret_cast<const char*>(nonceIBin.data()), nonceIBin.size());
+    CryptoPP::SecByteBlock nonceRBin = hexToSecByteBlock(nonceR);
+    seed.append(reinterpret_cast<const char*>(nonceRBin.data()), nonceRBin.size());
+    std::string spiIBin = uint64ToBinary(spiI);
+    seed.append(spiIBin);
+    std::string spiRBin = uint64ToBinary(spiR);
+    seed.append(spiRBin);
+    
+     // Calculating total key length 
+     //    SK_d = 32 byte
+     //    SK_ai = 16 byte
+     //    SK_ar = 16 byte
+     //    SK_ei = 16 byte
+     //    SK_er = 16 byte
+ 
+    const size_t totalBytes = 32 + 16 + 16 + 16 + 16; 
+
+    // Generating keychain with formula T1||T2||T3...||Tn = prf+(skeyseed, seed) 
+    std::string expanded = prfPlus(skeyseedHex, seed, totalBytes);
+
+    // Splitting all keys from keychain 
+    size_t offset = 0;
+    auto slice = [&](size_t len) 
+    {
+        std::string s = expanded.substr(offset, len);
+        offset += len;
+        return s;
+    };
+
+    // SK_d: 32 byte
+    std::string raw_sk_d = slice(32);
+    // SK_ai (Integrity Initiator, HMAC - SHA - 256): 16 byte
+    std::string raw_sk_ai = slice(16);
+    // SK_ar (Integrity Responder, HMAC - SHA - 256): 16 byte
+    std::string raw_sk_ar = slice(16);
+    // SK_ei (Encryption Initiator, AES CBC - 128): 16 byte
+    std::string raw_sk_ei = slice(16);
+    // SK_er (Encryption Responder, AES CBC - 128): 16 byte
+    std::string raw_sk_er = slice(16);
+
+    CryptoPP::SecByteBlock block_sk_d(
+        reinterpret_cast<const CryptoPP::byte*>(raw_sk_d.data()), raw_sk_d.size());
+    CryptoPP::SecByteBlock block_sk_ai(
+        reinterpret_cast<const CryptoPP::byte*>(raw_sk_ai.data()), raw_sk_ai.size());
+    CryptoPP::SecByteBlock block_sk_ar(
+        reinterpret_cast<const CryptoPP::byte*>(raw_sk_ar.data()), raw_sk_ar.size());
+    CryptoPP::SecByteBlock block_sk_ei(
+        reinterpret_cast<const CryptoPP::byte*>(raw_sk_ei.data()), raw_sk_ei.size());
+    CryptoPP::SecByteBlock block_sk_er(
+        reinterpret_cast<const CryptoPP::byte*>(raw_sk_er.data()), raw_sk_er.size());
+
+    sk_dHex = secByteBlockToHex(block_sk_d);
+    sk_aiHex = secByteBlockToHex(block_sk_ai);
+    sk_arHex = secByteBlockToHex(block_sk_ar);
+    sk_eiHex = secByteBlockToHex(block_sk_ei);
+    sk_erHex = secByteBlockToHex(block_sk_er);
+}
+
+
+

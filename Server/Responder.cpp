@@ -35,27 +35,32 @@ std::string Responder::getsharedSecret()
 
 void Responder::processIKE_SA_INIT(IKEMessage &request)
 {
+    std::cout << "STEP 1.1 - PROCESS IKE SA INIT" << std::endl; 
 	std::vector<uint8_t> binaryData = _network.receivePacket(); 
 	// Parsing packet first
     request.parseIKEmessage(binaryData);
 
-	// Get Key and Nonce 
+	// Getting Key and Nonce 
 	std::string InitiatorDHKey = binaryToHex(request.payloads[0].data);
 	ResponderCrypto::generateDHKey(_privatekey, _publickey);
-	std::cout << "Responder private key:" << _privatekey << std::endl;
-	std::cout << "Responder public key:" << _publickey << std::endl;
+
+	std::cout << "Generating responder private key:" << _privatekey << std::endl;
+	std::cout << "Generating responder public key:" << _publickey << std::endl;
+    std::cout << "Receiving initiator public key:" << InitiatorDHKey << std::endl;
 
 	ResponderCrypto::calculateSharedSecret(InitiatorDHKey, _privatekey, _sharedSecret);
-	std::cout << "shared Secret:" << _sharedSecret << std::endl; 
+	std::cout << "Shared Secret:" << _sharedSecret << std::endl; 
 
 	_nonceI = binaryToHex(request.payloads[1].data);
     std::cout << "Nonce from initator:" << _nonceI <<  std::endl;
+
+    std::cout << std::endl;
 }
 
 void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
 {
+    std::cout << "STEP 1.2 - SA IKE INIT RESPONSE" << std::endl;
     IKEMessage response;
-
     // Set Up IKE Header
     _peerSPI = request.header.initiatorSPI; // Copy from initiator request
     response.header.initiatorSPI = _peerSPI;
@@ -64,18 +69,14 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     response.header.nextPayload = static_cast<uint8_t> (PayloadType::KE);
     response.header.minorVersion = 0;
     response.header.exchangeType = static_cast<uint8_t> (IKEExchangeType::SA_INIT);
-    response.header.messageID = request.header.messageID;  // Message ID should match Initiator's
-
-    //// Build SA Payload (Match Initiator’s cryptographic suite)
-    //IKEPayload saPayload = buildSAPayload();
-    //response.payloads.push_back(saPayload);
+    response.header.messageID = request.header.messageID;  
 
     // Build KE Payload 
     IKEPayload kePayload = buildKEPayload(_publickey, PayloadType::NONCE);
 
     // Build Nonce payload 
     ResponderCrypto::generateNonce(_nonceR); 
-    std::cout << "Nonce will sent to initator:" << _nonceR << std::endl;
+    std::cout << "Nonce will be sent to initator:" << _nonceR << std::endl;
     IKEPayload noncePayload = buildNoncePayload(_nonceR, PayloadType::CERTREQ);
 
     // Build CAREQ payload 
@@ -94,28 +95,30 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     }
 
     response.header.length = totalLength;
-    std::cout << "Message length:" << totalLength << std::endl;
-
 
     // Send it 
     std::vector<uint8_t> binarymessage = response.toByteArray();
     _network.sendPacket(binarymessage);
 
-}
 
-void Responder::processIKE_AUTH()
-{
     // Calculating SKEYSEED
+    std::cout << std::endl;
+    std::cout << "------------CALCULATING KEY MATERIALS------------" << std::endl; 
     _skeyseed = ResponderCrypto::generateSKEYSEED(_sharedSecret, _nonceI, _nonceR);
     std::cout << "Skeyseed:" << _skeyseed << std::endl;
-    std::cout << "my SPI:" << _ikeSPI << std::endl;
-    std::cout << "peer SPI:" << _peerSPI << std::endl;
     // Deriving keys 
-    ResponderCrypto::deriveKeys(_skeyseed, _nonceI, _nonceR, _ikeSPI, _peerSPI, _sk_d, _sk_ai, _sk_ar, _sk_ei, _sk_er);
-    std::cout << "==================" << std::endl;
+    ResponderCrypto::deriveKeys(_skeyseed, _nonceI, _nonceR, _peerSPI, _ikeSPI, _sk_d, _sk_ai, _sk_ar, _sk_ei, _sk_er);
     std::cout << "Key child SA:" << _sk_d << std::endl;
     std::cout << "Key auth initiator:" << _sk_ai << std::endl;
     std::cout << "Key auth responder:" << _sk_ar << std::endl;
     std::cout << "Key encrypt initiator:" << _sk_ei << std::endl;
     std::cout << "Key encrypt responder:" << _sk_er << std::endl;
+
+    std::cout << std::endl;
+}
+
+void Responder::processIKE_AUTH()
+{
+    std::cout << "STEP 1.3 - Process IKE AUTH" << std::endl;
+   
 }

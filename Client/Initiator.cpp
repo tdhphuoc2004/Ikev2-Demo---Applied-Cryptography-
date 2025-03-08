@@ -42,13 +42,14 @@ std::string Initiator::getCAIndentifer()
 
 void Initiator::buildIKE_SA_INIT()
 {
+	std::cout << "STEP 1.1 - BUILD IKE SA INIT" << std::endl;
 	// Generating Nonce and DH key first 
 	InitiatorCrypto::generateDHKey(_privatekey, _publickey); 
 	InitiatorCrypto::generateNonce(_nonceI);
 
-	std::cout << "DH private:" << _privatekey << std::endl;
-	std::cout << "DH public:" << _publickey << std::endl;
-	std::cout << "nonce will sent to responder:" << _nonceI << std::endl;
+	std::cout << "Generating initiator private key:" << _privatekey << std::endl;
+	std::cout << "Generating initiator public key:" << _publickey << std::endl;
+	std::cout << "Nonce will be sent to responder:" << _nonceI << std::endl;
 
 	// Build IKE header 
 	IKEMessage message;
@@ -76,18 +77,16 @@ void Initiator::buildIKE_SA_INIT()
 	}
 
 	message.header.length = totalLength;
-	std::cout << "Message length:" << totalLength << std::endl; 
-
-	// Convert to binary format 
 	std :: vector<uint8_t> binarymessage = message.toByteArray(); 
-
 	_network.sendPacket(binarymessage);
-
 	_messageID++; 
+
+	std::cout << std::endl;
 }
 
 void Initiator::processIKE_SA_INIT_Response(IKEMessage &response)
 {
+	std::cout << "STEP 1.2 - PROCESS IKE SA INIT RESPONSE" << std::endl;
 	std::vector<uint8_t> binaryData = _network.receivePacket();
 	response.parseIKEmessage(binaryData); 
 
@@ -97,20 +96,21 @@ void Initiator::processIKE_SA_INIT_Response(IKEMessage &response)
 	std::string ResponderPublicDHKey = binaryToHex(response.payloads[0].data);
 
 	InitiatorCrypto::calculateSharedSecret(ResponderPublicDHKey, _privatekey, _sharedSecret);
+
+	std::cout << "Receiving responder public key:" << ResponderPublicDHKey << std::endl; 
 	std::cout << "shared Secret:" << _sharedSecret << std::endl;
-
 	_nonceR = binaryToHex(response.payloads[1].data);
-
 	std::cout << "Nonce receive from responder:" << _nonceR << std::endl;
 
 	// Get CERTREQ payload
-
 	std::vector<uint8_t> certReqRaw = response.payloads[2].data;
 
-	if (certReqRaw.size() >= (1 + SHA256_DIGEST_LENGTH)) {
+	if (certReqRaw.size() >= (1 + SHA256_DIGEST_LENGTH)) 
+	{
 		// Skip certificate type byte and convert hash to hex string
 		_caIdentifier.clear();
-		for (size_t i = 1; i < certReqRaw.size(); i++) {
+		for (size_t i = 1; i < certReqRaw.size(); i++) 
+		{
 			char hex[3];
 			snprintf(hex, sizeof(hex), "%02x", certReqRaw[i]);
 			_caIdentifier += hex;
@@ -118,25 +118,29 @@ void Initiator::processIKE_SA_INIT_Response(IKEMessage &response)
 
 		std::cout << "CA Hash: " << _caIdentifier << std::endl;
 	}
-	else {
+	else 
+	{
 		std::cerr << "Error: Invalid CERTREQ payload size" << std::endl;
 	}
 
-}
-
-void Initiator::buildIKE_AUTH()
-{
 	// Calculating SKEYSEED
-	_skeyseed = InitiatorCrypto::generateSKEYSEED(_sharedSecret, _nonceI, _nonceR); 
-	std::cout << "Skeyseed:" << _skeyseed << std::endl; 
-	std::cout << "my SPI:" << _ikeSPI << std::endl; 
-	std::cout << "peer SPI:" << _peerSPI << std::endl;
+	std::cout << std::endl;
+	std::cout << "------------CALCULATING KEY MATERIALS------------" << std::endl;
+	_skeyseed = InitiatorCrypto::generateSKEYSEED(_sharedSecret, _nonceI, _nonceR);
+	std::cout << "Skeyseed:" << _skeyseed << std::endl;
 	// Deriving keys 
-	InitiatorCrypto::deriveKeys(_skeyseed, _nonceI, _nonceR, _ikeSPI, _peerSPI, _sk_d, _sk_ai, _sk_ar, _sk_ei, _sk_er); 
-	std::cout << "==================" << std::endl; 
+	InitiatorCrypto::deriveKeys(_skeyseed, _nonceI, _nonceR, _ikeSPI, _peerSPI, _sk_d, _sk_ai, _sk_ar, _sk_ei, _sk_er);
 	std::cout << "Key child SA:" << _sk_d << std::endl;
 	std::cout << "Key auth initiator:" << _sk_ai << std::endl;
 	std::cout << "Key auth responder:" << _sk_ar << std::endl;
 	std::cout << "Key encrypt initiator:" << _sk_ei << std::endl;
 	std::cout << "Key encrypt responder:" << _sk_er << std::endl;
+
+	std::cout << std::endl;
+}
+
+void Initiator::buildIKE_AUTH()
+{
+	std::cout << "STEP 1.2 - BUILD IKE AUTH" << std::endl;
+	
 }

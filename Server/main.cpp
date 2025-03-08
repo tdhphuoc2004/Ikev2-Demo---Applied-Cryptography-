@@ -17,9 +17,17 @@ int main()
     {
         Responder responder(network);
         IKEMessage message; 
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
         responder.processIKE_SA_INIT(message);
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
         responder.buildIKE_SA_INIT_Response(message);
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
         responder.processIKE_AUTH(); 
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
         system("Pause"); 
     }
     else

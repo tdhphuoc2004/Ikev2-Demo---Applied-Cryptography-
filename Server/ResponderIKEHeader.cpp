@@ -18,8 +18,6 @@ std::vector<uint8_t> IKEHeader::toByteArray()
     return buffer;
 }
 
-
-
 // Generate a random SPI (8 bytes)
 uint64_t generateSPI() {
     std::random_device rd;

@@ -16,16 +16,8 @@ public:
 
     // Computing key in pseudorandom and deriving it to many keys 
     static std::string generateSKEYSEED(const std::string& sharedSecret, const std::string& nonceI, const std::string& nonceR); 
-    static std::string deriveKey(const std::string& key, const std::string& label, const std::string& data); 
-    static void deriveKeys(const std::string& skeyseed, const std::string& nonceI, const std::string& nonceR, const uint64_t spiI, const uint64_t spiR, std::string& sk_d, std::string& sk_ai,
-        std::string& sk_ar, std::string& sk_ei, std::string& sk_er); 
+    static std::string prf(const std::string& keyHex, const std::string& data);
+    static std::string prfPlus(const std::string& keyHex, const std::string& seed, size_t desiredLen); 
+    static void deriveKeys(const std::string& skeyseedHex, const std::string& nonceI, const std::string& nonceR, uint64_t spiI, uint64_t spiR, std::string& sk_dHex, std::string& sk_aiHex, std::string& sk_arHex, std::string& sk_eiHex, std::string& sk_erHex);
 
-    // Encrypt message (AES-GCM)
-   // static std::string encryptMessage(const std::string& plaintext, const std::string& key, const std::string& iv);
-
-    // Decrypt message (AES-GCM)
-   // static std::string decryptMessage(const std::string& ciphertext, const std::string& key, const std::string& iv);
-
-    // Compute HMAC for Integrity Check
-  //  static std::string computeHMAC(const std::string& message, const std::string& key);
 };
