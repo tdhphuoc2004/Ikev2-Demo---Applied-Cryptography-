@@ -73,16 +73,4 @@ public:
 
     void processIKE_AUTH();
     void buildIKE_AUTH_Response();
-    void processCREATE_CHILD_SA();
-    void buildCREATE_CHILD_SA_Response();
-    void processInformational();
-    void buildInformationalResponse();
-
-    // Cryptographic Operations
-    void generateKeys();
-    void encryptPacket();
-    void decryptPacket();
-
-    // Debugging
-    void logState();
 };

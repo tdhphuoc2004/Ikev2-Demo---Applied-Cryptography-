@@ -10,9 +10,8 @@
 #include <string>
 #include <eccrypto.h>
 #include <oids.h>
-
-
 #include "Utils.h"
+
 std::string uint64ToBinary(uint64_t value)
 {
     std::string result(8, 0);
@@ -38,6 +37,16 @@ uint64_t binaryToUint64(const std::string& binaryStr)
     }
 
     return result;
+}
+
+std::vector<uint8_t> stringToVector(const std::string& str) 
+{
+    return std::vector<uint8_t>(str.begin(), str.end());
+}
+
+std::string vectorToString(const std::vector<uint8_t>& vec)
+{
+    return std::string(vec.begin(), vec.end());
 }
 
 void printBinaryAsBin(const std::string& binaryStr)
@@ -83,3 +92,4 @@ std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock)
 
     return hexStr;
 }
+

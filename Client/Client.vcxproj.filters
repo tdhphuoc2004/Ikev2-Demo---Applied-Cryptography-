@@ -39,9 +39,6 @@
     <ClCompile Include="InitiatorIKEmessage.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="InitiatorCertificate.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
@@ -66,12 +63,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InitiatorIKEmessage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InitiatorCertificate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SAPayload.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">

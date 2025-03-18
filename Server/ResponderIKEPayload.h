@@ -3,10 +3,6 @@
 #include <cstdint>
 #include <string>
 
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-
-
 enum class PayloadType : uint8_t {
     NONE = 0,    // No next payload
     SA = 33,   // Security Association
@@ -17,6 +13,7 @@ enum class PayloadType : uint8_t {
     CERTREQ = 38,   // Certificate Request
     AUTH = 39,   // Authentication
     NONCE = 40,   // Nonce (Ni/Nr)
+    ENCR = 46 // Encrypt payload 
 };
 
 constexpr uint16_t PAYLOAD_HEADER_SIZE = 4;
@@ -42,9 +39,12 @@ IKEPayload parseKEPayload(const std::vector<uint8_t>& data);
 IKEPayload buildNoncePayload(const std::string& nonceHex, PayloadType nextType);
 IKEPayload parseNoncePayload(const std::vector<uint8_t>& data);
 
-// CAREQ Payload 
-IKEPayload buildCAREQPayload(const std::string& caName, PayloadType nextType);
-IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data);
+//Encrypted Payload
+IKEPayload buildEncryptedPayload(const std::vector<uint8_t>& plaintext, const std::string& aesKeyHex, PayloadType nextType);
+std::vector<uint8_t> parseEncryptedPayload(const IKEPayload& encPayload, const std::string& aesKeyHex);
+
+// Identification Payload 
+IKEPayload buildIDPayload(const std::string& identity, PayloadType nextType);
 
 std::vector<uint8_t> hexToBinary(const std::string& hex);
 std::string binaryToHex(const std::vector<uint8_t>& binary);

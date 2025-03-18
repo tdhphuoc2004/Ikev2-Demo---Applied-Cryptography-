@@ -1,11 +1,7 @@
 #include "InitiatorIKEHeader.h"
 #include "InitiatorIKEMessage.h"
-#include "InitiatorCertificate.h"
 #include "InitiatorIKEPayload.h"
-#include "SAPayload.h"
-
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
+#include "InitiatorCrypto.h"
 
 #include <cryptlib.h>
 #include <hex.h>
@@ -14,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+
 
 using namespace CryptoPP;
 
@@ -99,79 +96,58 @@ IKEPayload parseNoncePayload(const std::vector<uint8_t>& data)
     return nonce;
 }
 
-// Build CAREQ payload 
-IKEPayload buildCAREQPayload(const std::string& caName, PayloadType nextType)
+IKEPayload buildEncryptedPayload(const std::vector<uint8_t>& plaintext, const std::string& aesKeyHex, PayloadType nextType)
 {
-    IKEPayload careq;
-    careq.nextPayload = static_cast<uint8_t>(nextType);
-    careq.payloadLength = 0;
+    IKEPayload encPayload;
+    encPayload.nextPayload = static_cast<uint8_t>(nextType);
 
-    // Create payload vector
-    std::vector<uint8_t> payload;
-
-    // Add certificate type (X.509 Certificate - Signature)
-    payload.push_back(X509Cert_Signature);
-
-    // Hash the CA name using SHA-256
-    EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
-    if (mdctx) {
-        std::vector<uint8_t> hash(EVP_MAX_MD_SIZE);
-        unsigned int hashLen;
-
-        if (EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) &&
-            EVP_DigestUpdate(mdctx, caName.c_str(), caName.length()) &&
-            EVP_DigestFinal_ex(mdctx, hash.data(), &hashLen)) 
-        {
-            // Add hash to payload
-            hash.resize(hashLen);
-            payload.insert(payload.end(), hash.begin(), hash.end());
-        }
-        EVP_MD_CTX_free(mdctx);
+    // Generate a random IV
+    CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
+    InitiatorCrypto::GenerateIV(iv);
+    // Print IV as hex (byte by byte)
+    printf("IV: ");
+    for (int i = 0; i < CryptoPP::AES::BLOCKSIZE; ++i) {
+        printf("%02x ", iv[i]);  // Print each byte as 2-digit hex
     }
+    printf("\n");
+    
+    std::string plainStr(reinterpret_cast<const char*>(plaintext.data()), plaintext.size());
+    std::string cipherStr = InitiatorCrypto::EncryptAES_CBC(plainStr, aesKeyHex, iv);
 
-    // Set the payload data
-    careq.data = std::move(payload);
-    careq.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + careq.data.size());
+    // Format the payload data as [IV || ciphertext]
+    encPayload.data.insert(encPayload.data.end(), iv, iv + CryptoPP::AES::BLOCKSIZE);
+    encPayload.data.insert(encPayload.data.end(), cipherStr.begin(), cipherStr.end());
 
-    fprintf(stdout, "Built CERTREQ payload for CA: %s\n", caName.c_str());
-    return careq;
+    encPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + encPayload.data.size());
+    return encPayload;
 }
 
-// Parse CAREQ payload
-IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data)
+std::vector<uint8_t> parseEncryptedPayload(const IKEPayload& encPayload, const std::string& aesKeyHex)
 {
-    IKEPayload careq;
-    careq.nextPayload = static_cast<uint8_t>(PayloadType::NONE);
-    careq.payloadLength = 0;
+    return std::vector<uint8_t>();
+}
 
-    // Check minimum payload size (cert type + at least some hash data)
-    if (data.size() < (1 + SHA256_DIGEST_LENGTH)) 
-    {
-        fprintf(stderr, "Error: CAREQ payload too short\n");
-        return careq;
-    }
 
-    // Get certificate encoding type
-    uint8_t certType = data[0];
-    if (certType != X509Cert_Signature) 
-    {
-        fprintf(stderr, "Error: Unsupported certificate type: %d\n", certType);
-        return careq;
-    }
+IKEPayload buildAuthPayload(const std::vector<uint8_t>& signature, PayloadType nextType) 
+{
+    IKEPayload authPayload;
+    authPayload.nextPayload = static_cast<uint8_t>(nextType);
 
-    // Extract CA hash (rest of payload after cert type)
-    std::vector<uint8_t> caHash(data.begin() + 1, data.end());
+    authPayload.data = signature;
+    authPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + authPayload.data.size());
 
-    // Convert hash to hex string for display
-    std::string hashHex;
-    for (const auto& byte : caHash) 
-    {
-        char hex[3];
-        snprintf(hex, sizeof(hex), "%02x", byte);
-        hashHex += hex;
-    }
-    // Store complete payload data
-    careq.data = data;
-    careq.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + data.size());
-    return careq;
+    return authPayload;
+}
+
+
+IKEPayload buildIDPayload(const std::string& identity, PayloadType nextType)
+{
+    IKEPayload idPayload;
+    idPayload.nextPayload = static_cast<uint8_t>(nextType);
+
+    // Append the identity data 
+    idPayload.data.insert(idPayload.data.end(), identity.begin(), identity.end());
+
+    idPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + idPayload.data.size());
+    return idPayload;
 }

@@ -10,14 +10,13 @@
 #include <string>
 #include <eccrypto.h>
 #include <oids.h>
-
-
 #include "Utils.h"
-std::string uint64ToBinary(uint64_t value) 
-{
-    std::string result(8, 0); 
 
-   
+std::string uint64ToBinary(uint64_t value)
+{
+    std::string result(8, 0);
+
+
     for (int i = 0; i < 8; i++) {
         result[i] = static_cast<char>((value >> (56 - (i * 8))) & 0xFF);
     }
@@ -25,9 +24,9 @@ std::string uint64ToBinary(uint64_t value)
     return result;
 }
 
-uint64_t binaryToUint64(const std::string& binaryStr) 
+uint64_t binaryToUint64(const std::string& binaryStr)
 {
-  
+
     if (binaryStr.size() < 8) {
         throw std::runtime_error("Binary string too short for uint64_t conversion");
     }
@@ -40,7 +39,17 @@ uint64_t binaryToUint64(const std::string& binaryStr)
     return result;
 }
 
-void printBinaryAsBin(const std::string& binaryStr) 
+std::vector<uint8_t> stringToVector(const std::string& str)
+{
+    return std::vector<uint8_t>(str.begin(), str.end());
+}
+
+std::string vectorToString(const std::vector<uint8_t>& vec)
+{
+    return std::string(vec.begin(), vec.end());
+}
+
+void printBinaryAsBin(const std::string& binaryStr)
 {
     for (unsigned char c : binaryStr) {
         std::cout << std::bitset<8>(c) << " ";
@@ -63,7 +72,8 @@ CryptoPP::SecByteBlock hexToSecByteBlock(const std::string& hexStr)
     CryptoPP::SecByteBlock byteBlock(hexStr.size() / 2); // Each byte = 2 hex chars
 
     CryptoPP::StringSource(hexStr, true,
-        new CryptoPP::HexDecoder(
+        new CryptoPP::HexDecoder
+        (
             new CryptoPP::ArraySink(byteBlock, byteBlock.size())
         )
     );
@@ -72,7 +82,7 @@ CryptoPP::SecByteBlock hexToSecByteBlock(const std::string& hexStr)
 }
 
 // Convert SecByteBlock to Hex String
-std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock) 
+std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock)
 {
     std::string hexStr;
 
@@ -82,3 +92,4 @@ std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock)
 
     return hexStr;
 }
+

@@ -14,7 +14,7 @@ private:
     const std::string _integrityAlgorithm = "HMAC-SHA-256-128";
     const std::string _prfAlgorithm = "HMAC-SHA-256";
 
-    std::string _identity;
+    std::string _identity = "Initiator@hcmus.com";
 
     // Nonce 
     std::string _nonceI = "";
@@ -65,21 +65,10 @@ public:
         _messageID = 0; 
     }
 
-
     void buildIKE_SA_INIT();
     void processIKE_SA_INIT_Response(IKEMessage &response);
 
-    void buildIKE_AUTH();
+    void buildIKE_AUTH(IKEMessage request);
     //void processIKE_AUTH_Response();
     //void authenticate();
-    //void createChildSA();
-    //void buildCREATE_CHILD_SA();
-    //void sendInformational();
-    //void buildInformationalMessage();
-
-    //// Cryptographic Operations
-    //void encryptPacket();
-    //void decryptPacket();
-
-    //void logState();
 };

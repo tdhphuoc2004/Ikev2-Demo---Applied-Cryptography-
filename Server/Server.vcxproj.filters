@@ -39,9 +39,6 @@
     <ClCompile Include="ResponderIKEPayload.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResponderCertificate.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
@@ -66,9 +63,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ResponderIKEMessage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ResponderCertificate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">

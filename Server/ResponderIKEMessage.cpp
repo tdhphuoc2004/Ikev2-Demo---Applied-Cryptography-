@@ -38,8 +38,7 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
         std::cerr << "Error: IKE message length mismatch! Expected "
             << header.length << ", got " << rawData.size() << std::endl;
         return false;
-    }
-
+    } 
     payloads.clear();
 
     // Parse Payloads
@@ -87,10 +86,6 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
                 break;
             case PayloadType::NONCE:
                 payload = parseNoncePayload(payloadData);
-                payload.nextPayload = savedNextPayload;
-                break;
-            case PayloadType::CERTREQ:
-                payload = parseCAREQPayload(payloadData);
                 payload.nextPayload = savedNextPayload;
                 break;
             default:

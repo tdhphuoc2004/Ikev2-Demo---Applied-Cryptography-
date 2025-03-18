@@ -3,6 +3,9 @@
 #include <cryptlib.h>
 #include <secblock.h>
 #include <iostream>
+#include <aes.h>
+#include <modes.h>
+
 class InitiatorCrypto {
 public:
     // Generating Diffie-Hellman Key Pair (KEi)
@@ -19,5 +22,8 @@ public:
     static std::string prf(const std::string& keyHex, const std::string& data);
     static std::string prfPlus(const std::string& keyHex, const std::string& seed, size_t desiredLen); 
     static void deriveKeys(const std::string& skeyseedHex, const std::string& nonceI, const std::string& nonceR, uint64_t spiI, uint64_t spiR, std::string& sk_dHex, std::string& sk_aiHex, std::string& sk_arHex, std::string& sk_eiHex, std::string& sk_erHex);
-
+    // Encryption AES-CBC256
+    static std::string DecryptAES_CBC(const std::string& cipherText, const std::string &key, const CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE]);
+    static std::string EncryptAES_CBC(const std::string& plainText, const std::string &key, const CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE]);
+    static void GenerateIV(CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE]);
 };

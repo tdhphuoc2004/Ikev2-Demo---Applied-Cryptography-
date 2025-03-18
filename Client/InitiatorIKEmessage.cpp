@@ -95,11 +95,6 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
                 payload = parseNoncePayload(payloadData);
                 payload.nextPayload = savedNextPayload;
                 break;
-            case PayloadType::CERTREQ:
-                payload = parseCAREQPayload(payloadData); 
-                payload.nextPayload = savedNextPayload;
-                break; 
-
             default:
                 payload.data = payloadData;
                 break;

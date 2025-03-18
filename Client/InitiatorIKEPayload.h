@@ -3,9 +3,6 @@
 #include <cstdint>
 #include <string>
 
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-
 enum class PayloadType : uint8_t {
     NONE = 0,    // No next payload
     SA = 33,   // Security Association
@@ -16,6 +13,19 @@ enum class PayloadType : uint8_t {
     CERTREQ = 38,   // Certificate Request
     AUTH = 39,   // Authentication
     NONCE = 40,   // Nonce (Ni/Nr)
+    ENCR = 46 // Encrypt payload 
+};
+
+enum class IdentificationType: uint8_t 
+{
+    NONE = 0,    
+    ID_IPV4_ADDR = 1, 
+    ID_FQDN = 2, 
+    ID_RFC822_ADDR = 3, 
+    ID_IPV6_ADDR = 5, 
+    ID_DER_ASN1_DN = 9, 
+    ID_DER_ASN1_GN = 10, 
+    ID_KEY_ID = 11
 };
 
 constexpr uint16_t PAYLOAD_HEADER_SIZE = 4;
@@ -31,9 +41,6 @@ struct IKEPayload {
 
     std::vector<uint8_t> toByteArray();
 };
-// SA Payload
-//std::vector<uint8_t> encodeProposal(const Proposal& proposal, bool isLast); 
-//IKEPayload buildSAPayload(const std::vector<Proposal>& proposals, PayloadType nextType); 
 
 // KE Payload
 IKEPayload buildKEPayload(const std::string& publicKeyHex, PayloadType nextType);
@@ -43,9 +50,16 @@ IKEPayload parseKEPayload(const std::vector<uint8_t>& data);
 IKEPayload buildNoncePayload(const std::string& nonceHex, PayloadType nextType);
 IKEPayload parseNoncePayload(const std::vector<uint8_t>& data);
 
-// CAREQ Payload 
-IKEPayload buildCAREQPayload(const std::string& caName, PayloadType nextType); 
-IKEPayload parseCAREQPayload(const std::vector<uint8_t>& data); 
+//Auth payload
+IKEPayload buildAuthPayload(const std::vector<uint8_t>& signature, PayloadType nextType); 
+IKEPayload parseAuthPayload(const std::vector<uint8_t>& data);
+
+//Encrypted Payload
+IKEPayload buildEncryptedPayload(const std::vector<uint8_t>& plaintext, const std::string& aesKeyHex, PayloadType nextType); 
+std::vector<uint8_t> parseEncryptedPayload(const IKEPayload& encPayload, const std::string& aesKeyHex); 
+
+// Identification Payload 
+IKEPayload buildIDPayload(const std::string& identity, PayloadType nextType); 
 
 std::vector<uint8_t> hexToBinary(const std::string& hex);
 std::string binaryToHex(const std::vector<uint8_t>& binary);

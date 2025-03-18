@@ -5,7 +5,7 @@
 #include "ResponderIKEPayload.h"
 
 #include "ResponderCrypto.h"
-#include "ResponderCertificate.h"
+
 
 
 std::string Responder::getDHprivatekey()
@@ -79,13 +79,8 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
     std::cout << "Nonce will be sent to initator:" << _nonceR << std::endl;
     IKEPayload noncePayload = buildNoncePayload(_nonceR, PayloadType::CERTREQ);
 
-    // Build CAREQ payload 
-    const std::string caName = "/C=VN/O=GROUP5/CN=My Root CA";
-    IKEPayload careqPayload = buildCAREQPayload(caName, PayloadType::NONE);
-
     response.payloads.push_back(kePayload);
     response.payloads.push_back(noncePayload);
-    response.payloads.push_back(careqPayload); 
 
     // Calculate total IKE message length
     uint32_t totalLength = IKE_HEADER_SIZE;
@@ -120,5 +115,16 @@ void Responder::buildIKE_SA_INIT_Response(IKEMessage request)
 void Responder::processIKE_AUTH()
 {
     std::cout << "STEP 1.3 - Process IKE AUTH" << std::endl;
+    std::vector<uint8_t> binaryMessage = _network.receivePacket();
+
+    IKEMessage authMsg;
+    authMsg.parseIKEmessage(binaryMessage);
+    IKEPayload encPayload = authMsg.payloads[0];
+
+    // Decrypt the SK payload using the initiator's decryption key (_sk_ei).
+    std::vector<uint8_t> decryptedPayload = parseEncryptedPayload(encPayload, _sk_ei);
+
+    // Parse the inner payloads (IDi || CERT || AUTH).
+
    
 }

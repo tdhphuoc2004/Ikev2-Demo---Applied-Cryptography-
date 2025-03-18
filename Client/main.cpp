@@ -21,7 +21,7 @@ int main()
         initiator.processIKE_SA_INIT_Response(message); 
         std::cout << "===============================" << std::endl;
         std::cout << std::endl;
-        initiator.buildIKE_AUTH(); 
+        initiator.buildIKE_AUTH(message); 
         std::cout << "===============================" << std::endl;
         std::cout << std::endl;
     }

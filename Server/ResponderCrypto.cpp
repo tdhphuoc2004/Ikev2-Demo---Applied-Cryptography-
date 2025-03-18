@@ -8,7 +8,8 @@
 #include <string>
 #include <eccrypto.h>
 #include <oids.h>
-
+#include <aes.h>
+#include <modes.h>
 
 void ResponderCrypto::generateDHKey(std::string& privateKeyHex, std::string& publicKeyHex)
 {
@@ -219,5 +220,69 @@ void ResponderCrypto::deriveKeys(const std::string& skeyseedHex, const std::stri
     sk_erHex = secByteBlockToHex(block_sk_er);
 }
 
+
+std::string ResponderCrypto::DecryptAES_CBC(const std::string& cipherText, const std::string& key, const CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE])
+{
+    std::string recoveredText;
+
+    // Convert hex-encoded key to SecByteBlock
+    CryptoPP::SecByteBlock blockKey = hexToSecByteBlock(key);
+
+    // Ensure the key length is valid
+    if (blockKey.size() != CryptoPP::AES::DEFAULT_KEYLENGTH) {
+        throw std::runtime_error("Invalid AES-128 key size. Expected 16 bytes.");
+    }
+
+    // AES-CBC Decryption
+    CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption decryption;
+    decryption.SetKeyWithIV(blockKey, blockKey.size(), iv);
+
+    CryptoPP::StringSource(cipherText, true,
+        new CryptoPP::StreamTransformationFilter(decryption,
+            new CryptoPP::StringSink(recoveredText)
+        )
+    );
+    //// Print the ciphertext in hexadecimal format
+    //printf("Plaintext: ");
+    //for (size_t i = 0; i < recoveredText.size(); ++i) {
+    //    printf("%02x ", static_cast<unsigned char>(recoveredText[i]));
+    //}
+    //printf("\n");
+
+    return recoveredText;
+}
+
+std::string ResponderCrypto::EncryptAES_CBC(const std::string& plainText, const std::string& key, const CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE])
+{
+    std::string cipherText;
+
+    // Convert hex-encoded key to SecByteBlock
+    CryptoPP::SecByteBlock blockKey = hexToSecByteBlock(key);
+
+
+    // Ensure the key length is valid
+    if (blockKey.size() != CryptoPP::AES::DEFAULT_KEYLENGTH)
+    {
+        throw std::runtime_error("Invalid AES-128 key size. Expected 16 bytes.");
+    }
+
+    // AES-CBC Encryption
+    CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption encryption;
+    encryption.SetKeyWithIV(blockKey, blockKey.size(), iv);
+
+    CryptoPP::StringSource(plainText, true,
+        new CryptoPP::StreamTransformationFilter(encryption,
+            new CryptoPP::StringSink(cipherText)
+        )
+    );
+
+    return cipherText;
+}
+
+void ResponderCrypto::GenerateIV(CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE])
+{
+    CryptoPP::AutoSeededRandomPool prng;
+    prng.GenerateBlock(iv, CryptoPP::AES::BLOCKSIZE);
+}
 
 
