@@ -39,12 +39,12 @@ bool IKEMessage::parseIKEmessage(const std::vector<uint8_t>& rawData)
     std::memcpy(&header.length, data + offset, sizeof(uint32_t));
     offset += 4;
 
-    if (header.length != rawData.size()) 
+    /*if (header.length != rawData.size()) 
     {
         std::cerr << "Error: IKE message length mismatch! Expected "
             << header.length << ", got " << rawData.size() << std::endl;
         return false;
-    }
+    }*/
 
     payloads.clear();
 

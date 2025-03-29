@@ -15,6 +15,7 @@ private:
     const std::string _prfAlgorithm = "HMAC-SHA-256";
 
     std::string _identity = "Initiator@hcmus.com";
+    std::string _peeridentity = ""; 
 
     // Nonce 
     std::string _nonceI = "";
@@ -24,11 +25,6 @@ private:
     std::string _privatekey = "";
     std::string _publickey = ""; 
     std::string _sharedSecret = "";
-
-    // Certificate   
-    std::string _caIdentifier;         
-    std::string _certificate;   
-    std::string _peerCertificate;
 
     // SKEYSEED and cryptographic key 
     std::string _skeyseed;   
@@ -44,9 +40,6 @@ private:
 
     uint32_t _messageID; 
 
-    std::string _trafficSelectors;
-    std::string _state;
-
     InitiatorNetwork& _network;
 
 public:
@@ -61,14 +54,12 @@ public:
     // Constructor
     Initiator(InitiatorNetwork& net) : _network(net) 
     {
-        std::cout << "Initiator created using GCM-128 Security Suite." << std::endl;
         _messageID = 0; 
+        std::cout << "Initiator created." << std::endl;
     }
 
-    void buildIKE_SA_INIT();
-    void processIKE_SA_INIT_Response(IKEMessage &response);
-
-    void buildIKE_AUTH(IKEMessage request);
-    //void processIKE_AUTH_Response();
-    //void authenticate();
+    IKEMessage buildIKE_SA_INIT();
+    IKEMessage processIKE_SA_INIT_Response();
+    void buildIKE_AUTH(IKEMessage saInitInitatorRequest);
+    void processIKE_AUTH_Response(IKEMessage saInitResponderResponse);
 };

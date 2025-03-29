@@ -9,5 +9,5 @@ struct IKEMessage {
 
     std::vector<uint8_t> toByteArray(); // Convert full IKE message to binary
     
-    bool parseIKEmessage(const std::vector<uint8_t>& rawData); 
+    bool parseIKEmessage(const std::vector<uint8_t>& rawData);
 };

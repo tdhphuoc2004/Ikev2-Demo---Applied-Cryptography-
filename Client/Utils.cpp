@@ -93,3 +93,13 @@ std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock)
     return hexStr;
 }
 
+void printHexVector(const std::vector<uint8_t>& data)
+{
+    for (size_t i = 0; i < data.size(); ++i) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0')
+            << static_cast<int>(data[i]);
+        if ((i + 1) % 16 == 0) std::cout << " ";
+    }
+
+    std::cout << std::dec << std::endl; // Quay l?i h? ??m th?p phân sau khi in
+}

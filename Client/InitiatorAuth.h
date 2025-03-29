@@ -8,4 +8,4 @@
 #include <stdexcept>
 #include <cstdint>
 
-std::vector<uint8_t> signData(const std::string& hexPrivateKey, const std::vector<uint8_t>& dataToSign);
+std::vector<uint8_t> signData(const std::string& hexAuthKey, const std::vector<uint8_t>& dataToSign); 

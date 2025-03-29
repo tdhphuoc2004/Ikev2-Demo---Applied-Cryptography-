@@ -1,6 +1,6 @@
 #include "InitiatorIKEHeader.h"
-#include <random>
 #include <iostream>
+#include <osrng.h>
 
 std::vector<uint8_t> IKEHeader::toByteArray()
 {
@@ -19,12 +19,14 @@ std::vector<uint8_t> IKEHeader::toByteArray()
     return buffer;
 }
 
-
-
 // Generate a random SPI (8 bytes)
-uint64_t generateSPI() {
-    std::random_device rd;
-    std::mt19937_64 gen(rd());
-    std::uniform_int_distribution<uint64_t> dist(1, UINT64_MAX); // Ensure nonzero SPI
-    return dist(gen);
+uint64_t generateSPI() 
+{
+    CryptoPP::AutoSeededRandomPool prng;
+    uint64_t spi = 0;
+    do 
+    {
+        prng.GenerateBlock(reinterpret_cast<CryptoPP::byte*>(&spi), sizeof(spi));
+    } while (spi == 0); // ??m b?o SPI khác 0
+    return spi;
 }

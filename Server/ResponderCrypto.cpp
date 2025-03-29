@@ -242,12 +242,6 @@ std::string ResponderCrypto::DecryptAES_CBC(const std::string& cipherText, const
             new CryptoPP::StringSink(recoveredText)
         )
     );
-    //// Print the ciphertext in hexadecimal format
-    //printf("Plaintext: ");
-    //for (size_t i = 0; i < recoveredText.size(); ++i) {
-    //    printf("%02x ", static_cast<unsigned char>(recoveredText[i]));
-    //}
-    //printf("\n");
 
     return recoveredText;
 }

@@ -5,7 +5,7 @@
 enum class IKEExchangeType : uint8_t 
 {
     SA_INIT = 34,    // Initial exchange
-    AUTH = 35,    // Authentication
+    SA_AUTH = 35,    // Authentication
 };
 
 constexpr uint32_t IKE_HEADER_SIZE = 28;  // Fixed size of IKE header in bytes

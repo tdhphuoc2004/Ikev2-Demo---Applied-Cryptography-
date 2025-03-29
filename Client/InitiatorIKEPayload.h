@@ -29,7 +29,7 @@ enum class IdentificationType: uint8_t
 };
 
 constexpr uint16_t PAYLOAD_HEADER_SIZE = 4;
-
+constexpr uint16_t ID_TRUELY_DATA_SIZE = 4;
 
 // Generic IKE Payload Structure
 struct IKEPayload {

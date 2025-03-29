@@ -77,12 +77,12 @@ void ResponderNetwork::sendTextMessage(const std::string& msg) {
 void ResponderNetwork::sendPacket(const std::vector<uint8_t>& data) {
     send(clientSock, reinterpret_cast<const char*>(data.data()), data.size(), 0);
 
-    //// Optional: Print hex representation of sent data
-    //std::cout << "Sent packet (" << data.size() << " bytes): ";
-    //for (const auto& byte : data) {
-    //    printf("%02x ", byte);
-    //}
-    //std::cout << std::endl;
+    // Optional: Print hex representation of sent data
+ /*   std::cout << "Sent packet (" << data.size() << " bytes): ";
+    for (const auto& byte : data) {
+        printf("%02x ", byte);
+    }
+    std::cout << std::endl;*/
 }
 
 std::vector<uint8_t> ResponderNetwork::receivePacket() {

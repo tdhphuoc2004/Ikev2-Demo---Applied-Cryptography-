@@ -17,3 +17,5 @@ std::string secByteBlockToHex(const CryptoPP::SecByteBlock& byteBlock);
 
 std::vector<uint8_t> stringToVector(const std::string& str);
 std::string vectorToString(const std::vector<uint8_t>& vec);
+
+void printHexVector(const std::vector<uint8_t>& data);

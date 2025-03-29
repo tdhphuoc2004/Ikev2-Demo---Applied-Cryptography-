@@ -11,17 +11,21 @@ int main()
 
     if (response != "ERR")
     {
-        IKEMessage message; 
         Initiator initiator(network); 
+        IKEMessage IKEsaInitResponderResponse;
+        IKEMessage IKEsaInitInitiatorRequest;
         std::cout << "===============================" << std::endl;
         std::cout << std::endl; 
-        initiator.buildIKE_SA_INIT(); 
+        IKEsaInitInitiatorRequest = initiator.buildIKE_SA_INIT();
         std::cout << "===============================" << std::endl;
         std::cout << std::endl;
-        initiator.processIKE_SA_INIT_Response(message); 
+        IKEsaInitResponderResponse = initiator.processIKE_SA_INIT_Response();
         std::cout << "===============================" << std::endl;
         std::cout << std::endl;
-        initiator.buildIKE_AUTH(message); 
+        initiator.buildIKE_AUTH(IKEsaInitInitiatorRequest);
+        std::cout << "===============================" << std::endl;
+        std::cout << std::endl;
+        initiator.processIKE_AUTH_Response(IKEsaInitResponderResponse);
         std::cout << "===============================" << std::endl;
         std::cout << std::endl;
     }

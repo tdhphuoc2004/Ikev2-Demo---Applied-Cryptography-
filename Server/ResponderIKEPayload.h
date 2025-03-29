@@ -16,7 +16,20 @@ enum class PayloadType : uint8_t {
     ENCR = 46 // Encrypt payload 
 };
 
+enum class IdentificationType : uint8_t
+{
+    NONE = 0,
+    ID_IPV4_ADDR = 1,
+    ID_FQDN = 2,
+    ID_RFC822_ADDR = 3,
+    ID_IPV6_ADDR = 5,
+    ID_DER_ASN1_DN = 9,
+    ID_DER_ASN1_GN = 10,
+    ID_KEY_ID = 11
+};
+
 constexpr uint16_t PAYLOAD_HEADER_SIZE = 4;
+constexpr uint16_t ID_TRUELY_DATA_SIZE = 4;
 
 
 // Generic IKE Payload Structure
@@ -45,6 +58,11 @@ std::vector<uint8_t> parseEncryptedPayload(const IKEPayload& encPayload, const s
 
 // Identification Payload 
 IKEPayload buildIDPayload(const std::string& identity, PayloadType nextType);
+IKEPayload parseIDPayload(const std::vector<uint8_t>& data);
+
+// Authentication Payload
+IKEPayload buildAuthPayload(const std::vector<uint8_t>& signature, PayloadType nextType); 
+IKEPayload parseAuthPayload(const std::vector<uint8_t>& data);
 
 std::vector<uint8_t> hexToBinary(const std::string& hex);
 std::string binaryToHex(const std::vector<uint8_t>& binary);

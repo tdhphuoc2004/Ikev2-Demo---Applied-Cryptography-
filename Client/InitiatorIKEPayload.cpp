@@ -103,14 +103,7 @@ IKEPayload buildEncryptedPayload(const std::vector<uint8_t>& plaintext, const st
 
     // Generate a random IV
     CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
-    InitiatorCrypto::GenerateIV(iv);
-    // Print IV as hex (byte by byte)
-    printf("IV: ");
-    for (int i = 0; i < CryptoPP::AES::BLOCKSIZE; ++i) {
-        printf("%02x ", iv[i]);  // Print each byte as 2-digit hex
-    }
-    printf("\n");
-    
+    InitiatorCrypto::GenerateIV(iv);    
     std::string plainStr(reinterpret_cast<const char*>(plaintext.data()), plaintext.size());
     std::string cipherStr = InitiatorCrypto::EncryptAES_CBC(plainStr, aesKeyHex, iv);
 
@@ -124,9 +117,20 @@ IKEPayload buildEncryptedPayload(const std::vector<uint8_t>& plaintext, const st
 
 std::vector<uint8_t> parseEncryptedPayload(const IKEPayload& encPayload, const std::string& aesKeyHex)
 {
-    return std::vector<uint8_t>();
-}
+    // Extract the IV (first AES_BLOCK_SIZE bytes from the payload)
+    CryptoPP::byte iv[CryptoPP::AES::BLOCKSIZE];
+    std::copy(encPayload.data.begin(), encPayload.data.begin() + CryptoPP::AES::BLOCKSIZE, iv);
 
+    // The rest is the ciphertext
+    std::string ciphertext(encPayload.data.begin() + CryptoPP::AES::BLOCKSIZE, encPayload.data.end());
+
+    // Decrypt the ciphertext using AES CBC mode
+    std::string decryptedText = InitiatorCrypto::DecryptAES_CBC(ciphertext, aesKeyHex, iv);
+
+    std::vector<uint8_t> decryptedData(decryptedText.begin(), decryptedText.end());
+
+    return decryptedData;
+}
 
 IKEPayload buildAuthPayload(const std::vector<uint8_t>& signature, PayloadType nextType) 
 {
@@ -139,6 +143,14 @@ IKEPayload buildAuthPayload(const std::vector<uint8_t>& signature, PayloadType n
     return authPayload;
 }
 
+IKEPayload parseAuthPayload(const std::vector<uint8_t>& data)
+{
+    IKEPayload authPayload;
+    authPayload.data = data;
+    authPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + authPayload.data.size());
+    return authPayload;
+}
+
 
 IKEPayload buildIDPayload(const std::string& identity, PayloadType nextType)
 {
@@ -146,8 +158,23 @@ IKEPayload buildIDPayload(const std::string& identity, PayloadType nextType)
     idPayload.nextPayload = static_cast<uint8_t>(nextType);
 
     // Append the identity data 
+    IdentificationType idType = IdentificationType::ID_FQDN;
+    uint8_t rawIDType = static_cast<uint8_t>(idType);
+    idPayload.data.push_back(rawIDType);  // ID Type (1 byte)
+    idPayload.data.push_back(0x00);    // Reserved byte 1
+    idPayload.data.push_back(0x00);    // Reserved byte 2
+    idPayload.data.push_back(0x00);    // Reserved byte 3
     idPayload.data.insert(idPayload.data.end(), identity.begin(), identity.end());
 
     idPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + idPayload.data.size());
     return idPayload;
 }
+
+IKEPayload parseIDPayload(const std::vector<uint8_t>& data)
+{
+    IKEPayload idPayload;
+    idPayload.data = data;
+    idPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + idPayload.data.size());
+    return idPayload;
+}
+

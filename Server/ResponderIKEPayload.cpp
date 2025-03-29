@@ -133,3 +133,51 @@ std::vector<uint8_t> parseEncryptedPayload(const IKEPayload& encPayload, const s
 
     return decryptedData;
 }
+
+IKEPayload buildAuthPayload(const std::vector<uint8_t>& signature, PayloadType nextType)
+{
+    IKEPayload authPayload;
+    authPayload.nextPayload = static_cast<uint8_t>(nextType);
+
+    authPayload.data = signature;
+    authPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + authPayload.data.size());
+
+    return authPayload;
+}
+
+IKEPayload parseAuthPayload(const std::vector<uint8_t>& data) 
+{
+    IKEPayload authPayload;
+    authPayload.data = data;
+    authPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + authPayload.data.size());
+    return authPayload;
+}
+
+IKEPayload buildIDPayload(const std::string& identity, PayloadType nextType)
+{
+    IKEPayload idPayload;
+    idPayload.nextPayload = static_cast<uint8_t>(nextType);
+
+    // Append the identity data 
+    IdentificationType idType = IdentificationType::ID_FQDN;
+    uint8_t rawIDType = static_cast<uint8_t>(idType);
+    idPayload.data.push_back(rawIDType);  // ID Type (1 byte)
+    idPayload.data.push_back(0x00);    // Reserved byte 1
+    idPayload.data.push_back(0x00);    // Reserved byte 2
+    idPayload.data.push_back(0x00);    // Reserved byte 3
+    idPayload.data.insert(idPayload.data.end(), identity.begin(), identity.end());
+
+    idPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + idPayload.data.size());
+    return idPayload;
+}
+
+
+IKEPayload parseIDPayload(const std::vector<uint8_t>& data) 
+{
+    IKEPayload idPayload;
+    idPayload.data = data;
+    idPayload.payloadLength = static_cast<uint16_t>(PAYLOAD_HEADER_SIZE + idPayload.data.size());
+    return idPayload;
+}
+
+
