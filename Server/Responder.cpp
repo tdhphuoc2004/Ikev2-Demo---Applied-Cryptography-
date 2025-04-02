@@ -85,6 +85,7 @@ IKEMessage Responder::buildIKE_SA_INIT_Response()
     // Build Nonce payload 
     ResponderCrypto::generateNonce(_nonceR); 
     std::cout << "Nonce will be sent to initator:" << _nonceR << std::endl;
+    std::cout << "Responder public key will be sent to Initiator:" << _publickey << std::endl;
     IKEPayload noncePayload = buildNoncePayload(_nonceR, PayloadType::CERTREQ);
 
     saInitResponderResponse.payloads.push_back(kePayload);
@@ -101,7 +102,6 @@ IKEMessage Responder::buildIKE_SA_INIT_Response()
 
     // Send it 
     std::vector<uint8_t> binarymessage = saInitResponderResponse.toByteArray();
-    printHexVector(binarymessage);
     _network.sendPacket(binarymessage);
 
     // Calculating SKEYSEED
